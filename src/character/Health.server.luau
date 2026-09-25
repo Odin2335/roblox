@@ -1,0 +1,2 @@
+-- Ersetzt das Standard-Regenerationsskript von Roblox.
+-- Leben wird ausschließlich vom Server (PlayerState) verwaltet.

@@ -1,0 +1,249 @@
+[
+  {
+    "name": "Stone_Pickaxe",
+    "category": "01_Tools",
+    "triangles": 444,
+    "parts": 15,
+    "dimensions_xyz": [
+      2.248,
+      0.352,
+      2.275
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Copper_Pickaxe",
+    "category": "01_Tools",
+    "triangles": 488,
+    "parts": 16,
+    "dimensions_xyz": [
+      2.248,
+      0.352,
+      2.275
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Stone_Sword",
+    "category": "01_Tools",
+    "triangles": 112,
+    "parts": 5,
+    "dimensions_xyz": [
+      0.8,
+      0.253,
+      2.573
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Copper_Bow",
+    "category": "01_Tools",
+    "triangles": 266,
+    "parts": 10,
+    "dimensions_xyz": [
+      2.0,
+      0.289,
+      2.822
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Grapple_Launcher",
+    "category": "01_Tools",
+    "triangles": 2874,
+    "parts": 37,
+    "dimensions_xyz": [
+      0.86,
+      2.061,
+      1.404
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Stone_Deposit",
+    "category": "03_Resources",
+    "triangles": 360,
+    "parts": 9,
+    "dimensions_xyz": [
+      2.196,
+      1.806,
+      1.211
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Copper_Deposit",
+    "category": "03_Resources",
+    "triangles": 400,
+    "parts": 10,
+    "dimensions_xyz": [
+      2.006,
+      1.69,
+      1.386
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Rift_Deposit",
+    "category": "03_Resources",
+    "triangles": 270,
+    "parts": 9,
+    "dimensions_xyz": [
+      2.196,
+      1.806,
+      1.831
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Timber_Pile",
+    "category": "03_Resources",
+    "triangles": 4860,
+    "parts": 58,
+    "dimensions_xyz": [
+      1.408,
+      2.382,
+      1.327
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Workbench",
+    "category": "04_Structures",
+    "triangles": 2108,
+    "parts": 59,
+    "dimensions_xyz": [
+      3.18,
+      2.018,
+      2.485
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Smelting_Furnace",
+    "category": "04_Structures",
+    "triangles": 386,
+    "parts": 23,
+    "dimensions_xyz": [
+      1.85,
+      1.55,
+      2.59
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Return_Portal",
+    "category": "04_Structures",
+    "triangles": 964,
+    "parts": 36,
+    "dimensions_xyz": [
+      4.175,
+      1.8,
+      4.13
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Storage_Chest",
+    "category": "04_Structures",
+    "triangles": 728,
+    "parts": 18,
+    "dimensions_xyz": [
+      1.67,
+      1.077,
+      1.215
+    ],
+    "joint_pivot_hierarchy": false,
+    "joint_pivots": 0
+  },
+  {
+    "name": "Riftling",
+    "category": "02_Enemies",
+    "triangles": 1470,
+    "parts": 47,
+    "dimensions_xyz": [
+      2.069,
+      0.906,
+      2.838
+    ],
+    "joint_pivot_hierarchy": true,
+    "joint_pivots": 13
+  },
+  {
+    "name": "Rootstalker",
+    "category": "02_Enemies",
+    "triangles": 1612,
+    "parts": 71,
+    "dimensions_xyz": [
+      2.509,
+      1.009,
+      3.412
+    ],
+    "joint_pivot_hierarchy": true,
+    "joint_pivots": 13
+  },
+  {
+    "name": "Hollow_Warden",
+    "category": "02_Enemies",
+    "triangles": 2608,
+    "parts": 82,
+    "dimensions_xyz": [
+      3.86,
+      1.46,
+      4.642
+    ],
+    "joint_pivot_hierarchy": true,
+    "joint_pivots": 13
+  },
+  {
+    "name": "Lantern_Wraith",
+    "category": "02_Enemies",
+    "triangles": 1108,
+    "parts": 48,
+    "dimensions_xyz": [
+      1.859,
+      0.968,
+      3.464
+    ],
+    "joint_pivot_hierarchy": true,
+    "joint_pivots": 11
+  },
+  {
+    "name": "Rift_Crawler",
+    "category": "02_Enemies",
+    "triangles": 1396,
+    "parts": 55,
+    "dimensions_xyz": [
+      2.288,
+      2.254,
+      1.664
+    ],
+    "joint_pivot_hierarchy": true,
+    "joint_pivots": 15
+  },
+  {
+    "name": "Burrow_Mimic",
+    "category": "02_Enemies",
+    "triangles": 1826,
+    "parts": 67,
+    "dimensions_xyz": [
+      1.948,
+      1.405,
+      2.041
+    ],
+    "joint_pivot_hierarchy": true,
+    "joint_pivots": 11
+  }
+]

@@ -1,0 +1,97 @@
+newmtl stone
+Kd 0.26275 0.32549 0.37647
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl edge
+Kd 0.45882 0.55686 0.58824
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl dark
+Kd 0.11765 0.15686 0.20784
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl wood
+Kd 0.40784 0.25490 0.17647
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl woodlight
+Kd 0.63529 0.41569 0.23922
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl copper
+Kd 0.83529 0.49020 0.27059
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl gold
+Kd 0.97647 0.74118 0.39216
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl rift
+Kd 0.25882 0.90196 0.78431
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl ice
+Kd 0.70980 1.00000 0.92157
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl moss
+Kd 0.26667 0.41961 0.28627
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl bark
+Kd 0.29020 0.21569 0.17255
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl cloth
+Kd 0.23137 0.35294 0.35686
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl leather
+Kd 0.27451 0.17255 0.14902
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl fire
+Kd 1.00000 0.59216 0.25490
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
