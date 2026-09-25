@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Profile laden/speichern (DataStore) und Lagerbestand verwalten.
 -- In Studio ohne API-Zugriff läuft das Spiel mit Sitzungsdaten weiter.
 

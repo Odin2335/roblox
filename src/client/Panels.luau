@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Menüs: Schmiede (mit Härtungsschritt), Schmelzofen, Forschung, Lagerkiste,
 -- Expeditionstafel, Arsenal, Aufgaben und Hilfe.
 

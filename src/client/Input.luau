@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Eingaben (Maus/Tastatur, Controller, Touch) → Kampfabsichten an den Server.
 -- Ausweichen bewegt den eigenen Charakter sofort (Client besitzt die Physik),
 -- Unverwundbarkeit und Ausdauer prüft der Server.

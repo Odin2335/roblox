@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- RIFTBOUND – Client-Einstiegspunkt.
 
 local Store = require(script.Parent.Store)

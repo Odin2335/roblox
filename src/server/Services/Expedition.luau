@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Expeditionen: Lobby an der Tafel, Start, zufällige Bestückung von
 -- Verdant Scar, Rückkehr/Beutesicherung, Niederschlag, Wiederbeleben, Teamwipe.
 
@@ -16,9 +16,7 @@ local MAX_PARTY = 4
 local LOBBY_TIME = 20
 local TAG = "Run"
 
-type Phase = "Idle" | "Lobby" | "Running"
-
-local phase: Phase = "Idle"
+local phase: string = "Idle"
 local difficulty = "Normal"
 local leader: Player? = nil
 local members: { Player } = {}

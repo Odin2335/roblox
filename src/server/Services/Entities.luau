@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Entities: alles, was Schaden nehmen kann (Gegner, Boss, Übungspuppen,
 -- Barrieren, Riftkristalle) inkl. Statuseffekte und Gegner-KI.
 

@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- HUD: Leben, Ausdauer, Elementladung, Bossleiste, Ziel, Hinweise, Menü- und Handy-Tasten.
 
 local Players = game:GetService("Players")

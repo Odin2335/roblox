@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- RIFTBOUND – zentrale, datengetriebene Spielkonfiguration.
 -- Server und Client lesen dieselben Werte; nur der Server entscheidet.
 

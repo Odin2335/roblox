@@ -16,7 +16,7 @@
       <Item class="ModuleScript" referent="3">
         <Properties>
           <string name="Name">Config</string>
-          <string name="Source"><![CDATA[--!strict
+          <string name="Source"><![CDATA[--!nonstrict
 -- RIFTBOUND – zentrale, datengetriebene Spielkonfiguration.
 -- Server und Client lesen dieselben Werte; nur der Server entscheidet.
 
@@ -472,7 +472,7 @@ return Config
       <Item class="ModuleScript" referent="4">
         <Properties>
           <string name="Name">Net</string>
-          <string name="Source"><![CDATA[--!strict
+          <string name="Source"><![CDATA[--!nonstrict
 -- Erstellt (Server) bzw. findet (Client) alle Remotes an einer Stelle.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -548,7 +548,7 @@ return Net
         <Properties>
           <string name="Name">Main</string>
           <token name="RunContext">0</token>
-          <string name="Source"><![CDATA[--!strict
+          <string name="Source"><![CDATA[--!nonstrict
 -- RIFTBOUND – Server-Einstiegspunkt.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -609,7 +609,7 @@ print("[RIFTBOUND] Server bereit.")
         <Item class="ModuleScript" referent="9">
           <Properties>
             <string name="Name">AssetLoader</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- AssetLoader: liefert Modelle für Stationen, Ressourcen, Gegner und Deko.
 --
 -- 1. Liegt in ServerStorage.RiftboundAssets ein Modell mit dem passenden Namen
@@ -1238,7 +1238,7 @@ return AssetLoader
         <Item class="ModuleScript" referent="10">
           <Properties>
             <string name="Name">Combat</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Kampf: Der Client sendet nur Absichten, der Server prüft Abklingzeiten und
 -- Ausdauer, bestimmt Treffer, Schaden und alle Element-/Kombinationseffekte.
 
@@ -1680,7 +1680,7 @@ return Combat
         <Item class="ModuleScript" referent="11">
           <Properties>
             <string name="Name">DataService</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Profile laden/speichern (DataStore) und Lagerbestand verwalten.
 -- In Studio ohne API-Zugriff läuft das Spiel mit Sitzungsdaten weiter.
 
@@ -1914,7 +1914,7 @@ return DataService
         <Item class="ModuleScript" referent="12">
           <Properties>
             <string name="Name">Entities</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Entities: alles, was Schaden nehmen kann (Gegner, Boss, Übungspuppen,
 -- Barrieren, Riftkristalle) inkl. Statuseffekte und Gegner-KI.
 
@@ -3113,7 +3113,7 @@ return Entities
         <Item class="ModuleScript" referent="13">
           <Properties>
             <string name="Name">Expedition</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Expeditionen: Lobby an der Tafel, Start, zufällige Bestückung von
 -- Verdant Scar, Rückkehr/Beutesicherung, Niederschlag, Wiederbeleben, Teamwipe.
 
@@ -3131,9 +3131,7 @@ local MAX_PARTY = 4
 local LOBBY_TIME = 20
 local TAG = "Run"
 
-type Phase = "Idle" | "Lobby" | "Running"
-
-local phase: Phase = "Idle"
+local phase: string = "Idle"
 local difficulty = "Normal"
 local leader: Player? = nil
 local members: { Player } = {}
@@ -3831,7 +3829,7 @@ return Expedition
         <Item class="ModuleScript" referent="14">
           <Properties>
             <string name="Name">Forge</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Schmiede, Schmelzofen, Forschungstisch, Arsenal und Lagerkiste.
 -- Alle Aktionen sind nur im Camp möglich und werden serverseitig geprüft.
 
@@ -4187,7 +4185,7 @@ return Forge
         <Item class="ModuleScript" referent="15">
           <Properties>
             <string name="Name">PlayerState</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Laufzeitzustand der Spieler: Leben, Ausdauer, Elementladung, Rucksack,
 -- ausgerüstete Waffe und Synchronisation zum Client.
 
@@ -4668,7 +4666,7 @@ return PlayerState
         <Item class="ModuleScript" referent="16">
           <Properties>
             <string name="Name">Progress</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Meilensteine und Aufgaben.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -4746,7 +4744,7 @@ return Progress
         <Item class="ModuleScript" referent="17">
           <Properties>
             <string name="Name">WorldBuilder</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Baut beim Serverstart die Welt: das Rift Camp und das Expeditionsgebiet
 -- "Verdant Scar" (Außenposten, Ruinen, Kupfermine mit zwei Routen, Rift-Kammer).
 -- Eigene Deko kannst du in Studio einfach dazubauen; Stationen und Spawnpunkte
@@ -5234,7 +5232,7 @@ return WorldBuilder
         <Item class="ModuleScript" referent="23">
           <Properties>
             <string name="Name">Fx</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Rein visuelle Effekte (lokal): Schwünge, Schadenszahlen, Elementeffekte, Boss.
 
 local Debris = game:GetService("Debris")
@@ -5673,7 +5671,7 @@ return Fx
         <Item class="ModuleScript" referent="24">
           <Properties>
             <string name="Name">Hud</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- HUD: Leben, Ausdauer, Elementladung, Bossleiste, Ziel, Hinweise, Menü- und Handy-Tasten.
 
 local Players = game:GetService("Players")
@@ -6041,7 +6039,7 @@ return Hud
         <Item class="ModuleScript" referent="25">
           <Properties>
             <string name="Name">Input</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Eingaben (Maus/Tastatur, Controller, Touch) → Kampfabsichten an den Server.
 -- Ausweichen bewegt den eigenen Charakter sofort (Client besitzt die Physik),
 -- Unverwundbarkeit und Ausdauer prüft der Server.
@@ -6273,7 +6271,7 @@ return Input
         <Item class="LocalScript" referent="26">
           <Properties>
             <string name="Name">Main</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- RIFTBOUND – Client-Einstiegspunkt.
 
 local Store = require(script.Parent.Store)
@@ -6301,7 +6299,7 @@ local _ = Store
         <Item class="ModuleScript" referent="27">
           <Properties>
             <string name="Name">Panels</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Menüs: Schmiede (mit Härtungsschritt), Schmelzofen, Forschung, Lagerkiste,
 -- Expeditionstafel, Arsenal, Aufgaben und Hilfe.
 
@@ -7229,7 +7227,7 @@ return Panels
         <Item class="ModuleScript" referent="28">
           <Properties>
             <string name="Name">Store</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Letzter Profil-Snapshot vom Server + Änderungssignal.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -7283,7 +7281,7 @@ return Store
         <Item class="ModuleScript" referent="29">
           <Properties>
             <string name="Name">UI</string>
-            <string name="Source"><![CDATA[--!strict
+            <string name="Source"><![CDATA[--!nonstrict
 -- Kleine UI-Bibliothek: einheitlicher Look für HUD und Menüs.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

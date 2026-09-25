@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Schmiede, Schmelzofen, Forschungstisch, Arsenal und Lagerkiste.
 -- Alle Aktionen sind nur im Camp möglich und werden serverseitig geprüft.
 

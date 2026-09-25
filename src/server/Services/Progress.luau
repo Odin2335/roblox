@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Meilensteine und Aufgaben.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

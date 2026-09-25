@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- AssetLoader: liefert Modelle für Stationen, Ressourcen, Gegner und Deko.
 --
 -- 1. Liegt in ServerStorage.RiftboundAssets ein Modell mit dem passenden Namen

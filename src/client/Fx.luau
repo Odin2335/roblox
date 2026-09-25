@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Rein visuelle Effekte (lokal): Schwünge, Schadenszahlen, Elementeffekte, Boss.
 
 local Debris = game:GetService("Debris")

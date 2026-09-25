@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Laufzeitzustand der Spieler: Leben, Ausdauer, Elementladung, Rucksack,
 -- ausgerüstete Waffe und Synchronisation zum Client.
 

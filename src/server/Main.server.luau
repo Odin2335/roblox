@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- RIFTBOUND – Server-Einstiegspunkt.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

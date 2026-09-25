@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Erstellt (Server) bzw. findet (Client) alle Remotes an einer Stelle.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Kleine UI-Bibliothek: einheitlicher Look für HUD und Menüs.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

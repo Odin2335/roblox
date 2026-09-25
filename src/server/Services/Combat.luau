@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Kampf: Der Client sendet nur Absichten, der Server prüft Abklingzeiten und
 -- Ausdauer, bestimmt Treffer, Schaden und alle Element-/Kombinationseffekte.
 

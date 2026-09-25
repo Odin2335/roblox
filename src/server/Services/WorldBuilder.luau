@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Baut beim Serverstart die Welt: das Rift Camp und das Expeditionsgebiet
 -- "Verdant Scar" (Außenposten, Ruinen, Kupfermine mit zwei Routen, Rift-Kammer).
 -- Eigene Deko kannst du in Studio einfach dazubauen; Stationen und Spawnpunkte

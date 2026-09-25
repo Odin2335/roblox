@@ -1,4 +1,4 @@
---!strict
+--!nonstrict
 -- Letzter Profil-Snapshot vom Server + Änderungssignal.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
