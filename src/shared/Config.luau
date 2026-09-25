@@ -4,7 +4,7 @@
 
 local Config = {}
 
-Config.Version = "MVP v2 – Die Elementarschmiede"
+Config.Version = "MVP v2 – Die Elementarschmiede + Expeditionsausrüstung"
 
 --------------------------------------------------------------------------------
 -- Farben
@@ -26,7 +26,7 @@ Config.Colors = {
 --------------------------------------------------------------------------------
 export type ItemDef = {
 	name: string,
-	kind: "Basic" | "Core" | "Part",
+	kind: "Basic" | "Core" | "Part" | "Blueprint" | "Consumable",
 	color: Color3,
 	desc: string,
 }
@@ -37,6 +37,26 @@ Config.Items = {
 	Stone = { name = "Stein", kind = "Basic", color = Color3.fromRGB(130, 140, 150), desc = "Für schwere Waffenköpfe." },
 	Wood = { name = "Holz", kind = "Basic", color = Color3.fromRGB(120, 80, 50), desc = "Griffe und Schäfte." },
 	RiftCrystal = { name = "Riftkristall", kind = "Basic", color = Config.Colors.Rift, desc = "Bindet Elementkerne an eine Waffe." },
+	Fiber = { name = "Fasern", kind = "Basic", color = Color3.fromRGB(170, 190, 110), desc = "Für Rüstung, Bogensehnen und Seile." },
+	Herb = { name = "Heilkräuter", kind = "Basic", color = Color3.fromRGB(90, 200, 110), desc = "Werden an der Werkbank zu Heiltränken." },
+
+	Potion = { name = "Heiltrank", kind = "Consumable", color = Color3.fromRGB(230, 70, 90), desc = "Heilt 45 % deines Lebens. Taste 1." },
+	Arrow = { name = "Pfeil", kind = "Consumable", color = Color3.fromRGB(200, 170, 120), desc = "Munition für den Kupferbogen." },
+	RecallBeacon = {
+		name = "Rückruf-Signalgeber",
+		kind = "Consumable",
+		color = Color3.fromRGB(120, 230, 255),
+		desc = "Einmal pro Expedition: Notflucht ins Camp, Beute bleibt gesichert. Taste X.",
+	},
+
+	BlueprintGrapple = { name = "Bauplan: Seilwerfer", kind = "Blueprint", color = Color3.fromRGB(240, 220, 160), desc = "Am Forschungstisch entschlüsseln." },
+	BlueprintBow = { name = "Bauplan: Kupferbogen", kind = "Blueprint", color = Color3.fromRGB(240, 220, 160), desc = "Am Forschungstisch entschlüsseln." },
+	BlueprintLocator = {
+		name = "Bauplan: Rift-Ortungsgerät",
+		kind = "Blueprint",
+		color = Color3.fromRGB(240, 220, 160),
+		desc = "Beute des Hollow Warden. Am Forschungstisch entschlüsseln.",
+	},
 
 	CoreEmber = { name = "Glutkern", kind = "Core", color = Color3.fromRGB(255, 120, 40), desc = "Element Glut." },
 	CoreFrost = { name = "Frostkern", kind = "Core", color = Color3.fromRGB(120, 200, 255), desc = "Element Frost." },
@@ -81,6 +101,14 @@ Config.ItemOrder = {
 	"Stone",
 	"Wood",
 	"RiftCrystal",
+	"Fiber",
+	"Herb",
+	"Potion",
+	"Arrow",
+	"RecallBeacon",
+	"BlueprintGrapple",
+	"BlueprintBow",
+	"BlueprintLocator",
 	"CoreEmber",
 	"CoreFrost",
 	"CoreStorm",
@@ -92,7 +120,107 @@ Config.ItemOrder = {
 	"PartMimicTooth",
 }
 
-Config.StarterStash = { CopperBar = 5, Wood = 4, Stone = 2, RiftCrystal = 2 }
+Config.StarterStash = { CopperBar = 5, Wood = 6, Stone = 4, RiftCrystal = 2, Potion = 2 }
+
+--------------------------------------------------------------------------------
+-- Ausrüstung (Werkbank): Werkzeuge öffnen neue Wege, nicht nur mehr Schaden
+--------------------------------------------------------------------------------
+export type GearDef = {
+	name: string,
+	desc: string,
+	cost: { [string]: number },
+	requires: string?, -- vorher benötigte Ausrüstung
+	research: string?, -- muss am Forschungstisch entschlüsselt sein
+	amount: number?, -- Verbrauchsgüter: Stückzahl pro Herstellung
+	item: string?, -- Verbrauchsgut, das ins Lager kommt
+}
+
+Config.GearOrder = { "StonePickaxe", "CopperPickaxe", "Grapple", "CopperBow", "LightArmor", "Locator", "Potion", "Arrow", "RecallBeacon" }
+
+Config.Gear = {
+	StonePickaxe = { name = "Steinspitzhacke", desc = "Baut normale Stein-, Kupfer- und Riftadern ab.", cost = { Wood = 2, Stone = 2 } },
+	CopperPickaxe = {
+		name = "Kupferspitzhacke",
+		desc = "Baut auch harte Erzadern ab – mehr Kupfer und Riftkristalle.",
+		cost = { CopperBar = 3, Wood = 2 },
+		requires = "StonePickaxe",
+	},
+	Grapple = {
+		name = "Seilwerfer",
+		desc = "Überquert Abgründe. Öffnet den versteckten Höhlenbereich in der Kupfermine.",
+		cost = { CopperBar = 3, Fiber = 4, Wood = 2 },
+		research = "Grapple",
+	},
+	CopperBow = {
+		name = "Kupferbogen",
+		desc = "Fernkampf (Taste T). Ideal gegen schwebende Wraiths. Verbraucht Pfeile.",
+		cost = { CopperBar = 2, Wood = 3, Fiber = 3 },
+		research = "Bow",
+	},
+	LightArmor = { name = "Leichte Rüstung", desc = "Verringert erlittenen Schaden um 20 %.", cost = { Fiber = 6, CopperBar = 2 } },
+	Locator = {
+		name = "Rift-Ortungsgerät",
+		desc = "Ortet neue Rift-Gebiete jenseits von Verdant Scar. Dein erstes Langzeitziel.",
+		cost = { RiftCrystal = 8, CopperBar = 5 },
+		research = "Locator",
+	},
+	Potion = { name = "Heiltrank ×1", desc = "Heilt 45 % Leben (Taste 1).", cost = { Herb = 2 }, amount = 1, item = "Potion" },
+	Arrow = { name = "Pfeile ×6", desc = "Munition für den Kupferbogen.", cost = { Wood = 1, Stone = 1 }, amount = 6, item = "Arrow" },
+	RecallBeacon = {
+		name = "Rückruf-Signalgeber",
+		desc = "Notflucht aus der Expedition (einmal pro Lauf).",
+		cost = { CopperBar = 1, RiftCrystal = 1 },
+		amount = 1,
+		item = "RecallBeacon",
+	},
+} :: { [string]: GearDef }
+
+-- Forschungstisch: Baupläne entschlüsseln (zusätzlich zu Hammer/Speer)
+Config.Research = {
+	Grapple = { name = "Seilwerfer", cost = { BlueprintGrapple = 1, RiftCrystal = 2 } },
+	Bow = { name = "Kupferbogen", cost = { BlueprintBow = 1, Wood = 2 } },
+	Locator = { name = "Rift-Ortungsgerät", cost = { BlueprintLocator = 1, RiftCrystal = 3 } },
+}
+Config.ResearchOrder = { "Grapple", "Bow", "Locator" }
+
+Config.Bow = { Damage = 16, Range = 90, Cooldown = 0.7, Stamina = 6 }
+Config.Potion = { Heal = 0.45, Cooldown = 6 }
+Config.Recall = { Channel = 3 }
+Config.ArmorReduction = 0.2
+
+--------------------------------------------------------------------------------
+-- Camp-Ausbauten (sichtbar im Camp, wirken für den Besitzer)
+--------------------------------------------------------------------------------
+Config.UpgradeOrder = { "BigFurnace", "HerbGarden", "Watchtower" }
+Config.Upgrades = {
+	BigFurnace = {
+		name = "Großer Schmelzofen",
+		desc = "3 Kupfererz ergeben 2 Barren statt 2 → 1.",
+		cost = { Stone = 10, CopperBar = 4 },
+		requires = "SurviveRun",
+	},
+	HerbGarden = {
+		name = "Kräuterbeet",
+		desc = "Jeder gebraute Heiltrank ergibt zwei Tränke.",
+		cost = { Wood = 8, Herb = 4, Fiber = 4 },
+		requires = "SurviveRun",
+	},
+	Watchtower = {
+		name = "Rift-Wachturm",
+		desc = "Die Rift-Gefahr steigt in deinen Expeditionen 2 Minuten später an.",
+		cost = { Wood = 10, Stone = 8, RiftCrystal = 4 },
+		requires = "SurviveRun",
+	},
+}
+
+-- Rift-Gefahr: je länger das Team bleibt, desto mehr Gegner erscheinen
+Config.RiftDanger = {
+	StartAfter = 300, -- Sekunden
+	LevelEvery = 120,
+	WaveEvery = 40,
+	MaxLevel = 5,
+	TowerDelay = 120,
+}
 
 --------------------------------------------------------------------------------
 -- Elemente & Kombinationen
@@ -255,7 +383,7 @@ function Config.QualityFromScore(score: number): number
 	return 1
 end
 
-Config.Smelt = { input = "CopperOre", inputAmount = 2, output = "CopperBar" }
+Config.Smelt = { input = "CopperOre", inputAmount = 2, output = "CopperBar", bigInput = 3, bigOutput = 2 }
 
 --------------------------------------------------------------------------------
 -- Spieler
@@ -392,6 +520,9 @@ Config.Enemies = {
 		drops = {
 			{ item = "PartWardenHorn", min = 1, max = 1, chance = 1 },
 			{ item = "RiftCrystal", min = 4, max = 6, chance = 1 },
+			{ item = "BlueprintLocator", min = 1, max = 1, chance = 1 },
+			{ item = "BlueprintGrapple", min = 1, max = 1, chance = 0.3 },
+			{ item = "BlueprintBow", min = 1, max = 1, chance = 0.3 },
 		},
 	},
 } :: { [string]: EnemyDef }
@@ -430,21 +561,36 @@ Config.Quests = {
 }
 
 Config.Milestones = {
+	{ id = "StonePickaxe", text = "Steinspitzhacke herstellen", hint = "Geh zur Werkbank (rechts vorne) und stelle eine Steinspitzhacke her." },
 	{ id = "FirstWeapon", text = "Erste Waffe schmieden", hint = "Geh zur Schmiede (links) und stelle ein Schwert her." },
+	{
+		id = "SurviveRun",
+		text = "Erste Expedition überleben",
+		hint = "Starte an der Expeditionstafel eine Expedition und sichere Beute am Rückkehrportal.",
+	},
+	{ id = "SmeltCopper", text = "Kupfererz finden und schmelzen", hint = "Baue Kupferadern ab, bring das Erz zurück und schmilz es im Schmelzofen." },
+	{ id = "CopperPickaxe", text = "Kupferspitzhacke herstellen", hint = "Mit der Kupferspitzhacke baust du harte Erzadern ab." },
 	{
 		id = "Barrier",
 		text = "Eine Barriere im Gebiet überwinden",
-		hint = "Starte eine Expedition. In den Ruinen versperrt eine Rift-Barriere einen Schrein (schwere Angriffe!).",
+		hint = "In den Ruinen versperrt eine Rift-Barriere einen Schrein (schwere Angriffe!).",
 	},
 	{ id = "FirstCore", text = "Den ersten Elementkern bergen", hint = "Hinter der Rift-Barriere wartet ein Elementkern. Bring ihn sicher zurück." },
 	{ id = "ElementWeapon", text = "Eine Elementwaffe schmieden", hint = "Setze in der Schmiede einen Elementkern in eine Waffe ein." },
+	{
+		id = "ReachCave",
+		text = "Mit dem Seilwerfer den Höhlenbereich erreichen",
+		hint = "Finde in Truhen den Bauplan für den Seilwerfer, entschlüssele ihn und überquere den Abgrund am sicheren Pfad.",
+	},
 	{ id = "MonsterPart", text = "Ein Monsterteil einsetzen", hint = "Bring ein Monsterteil zurück und setze es in der Schmiede oder im Arsenal ein." },
 	{ id = "Warden", text = "Den Hollow Warden besiegen", hint = "Die Rift-Kammer liegt hinter der Kupfermine." },
+	{ id = "BaseUpgrade", text = "Den ersten Basis-Ausbau freischalten", hint = "Baue am Forschungstisch einen Camp-Ausbau (z. B. den großen Schmelzofen)." },
 	{
 		id = "Rebuild",
 		text = "Einen Bauplan mit neuer Elementkombination nachbauen",
 		hint = "Speichere einen Bauplan, lade ihn in der Schmiede und ändere ein Element.",
 	},
+	{ id = "Locator", text = "Das Rift-Ortungsgerät bauen", hint = "Der Warden hinterlässt einen Bauplan. Entschlüssele ihn und baue das Gerät." },
 }
 
 return Config

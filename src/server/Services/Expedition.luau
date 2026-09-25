@@ -124,27 +124,46 @@ local function randomPart(): string
 	return parts[math.random(1, #parts)]
 end
 
-local NODE_YIELD: { [string]: { string | number } } = {
-	Copper_Deposit = { "CopperOre", 3, 4 },
-	Stone_Deposit = { "Stone", 2, 3 },
-	Timber_Pile = { "Wood", 2, 3 },
-	Rift_Deposit = { "RiftCrystal", 2, 3 },
+-- Ressourcenknoten: Ertrag und benötigtes Werkzeug
+local NODES = {
+	Copper_Deposit = { item = "CopperOre", min = 3, max = 4, tool = "StonePickaxe" },
+	Stone_Deposit = { item = "Stone", min = 2, max = 3, tool = "StonePickaxe" },
+	Rift_Deposit = { item = "RiftCrystal", min = 2, max = 3, tool = "StonePickaxe" },
+	Hard_Copper_Deposit = { item = "CopperOre", min = 5, max = 7, tool = "CopperPickaxe", bonus = { RiftCrystal = 1 }, label = "Harte Kupferader" },
+	Timber_Pile = { item = "Wood", min = 2, max = 3 },
+	Fiber_Bush = { item = "Fiber", min = 2, max = 3 },
+	Herb_Patch = { item = "Herb", min = 1, max = 2 },
 }
 
 local function spawnNode(kind: string, pos: Vector3)
+	local def = NODES[kind]
 	local folder = runFolder :: Folder
 	local m = ctx.WorldBuilder.Place(kind, pos, math.random(0, 359), nil, folder)
-	local prompt = ctx.WorldBuilder.Prompt(ctx.WorldBuilder.PromptAnchor(m), "Abbauen", Config.Items[NODE_YIELD[kind][1] :: string].name, 1.1)
+	local title = def.label or Config.Items[def.item].name
+	if def.tool then
+		title ..= " (" .. Config.Gear[def.tool].name .. ")"
+	end
+	local verb = if def.tool then "Abbauen" else "Sammeln"
+	local prompt = ctx.WorldBuilder.Prompt(ctx.WorldBuilder.PromptAnchor(m), verb, title, if def.tool then 1.1 else 0.6)
 	local used = false
 	prompt.Triggered:Connect(function(player)
 		if used or not isParticipant(player) or not ctx.PlayerState.IsActive(player) then
 			return
 		end
+		local profile = ctx.DataService.Get(player)
+		if def.tool and not (profile and profile.tools[def.tool]) then
+			ctx.PlayerState.Notify(player, "Dafür brauchst du eine " .. Config.Gear[def.tool].name .. " (Werkbank).", "bad")
+			return
+		end
 		used = true
-		local y = NODE_YIELD[kind]
-		local item = y[1] :: string
-		ctx.PlayerState.AddLoot(player, scaleLoot({ [item] = math.random(y[2] :: number, y[3] :: number) }))
-		Net.Event("Fx"):FireAllClients("Harvest", pos)
+		local loot = { [def.item] = math.random(def.min, def.max) }
+		if def.bonus then
+			for k, v in def.bonus do
+				loot[k] = (loot[k] or 0) + v
+			end
+		end
+		ctx.PlayerState.AddLoot(player, scaleLoot(loot))
+		Net.Event("Fx"):FireAllClients("Harvest", pos, def.tool)
 		for _, d in m:GetDescendants() do
 			if d:IsA("BasePart") then
 				TweenService:Create(d, TweenInfo.new(0.4), { Transparency = 1 }):Play()
@@ -154,6 +173,24 @@ local function spawnNode(kind: string, pos: Vector3)
 			m:Destroy()
 		end)
 	end)
+end
+
+-- Bauplan-Chance in Truhen (nur Baupläne, die der Spieler noch nicht hat)
+local function blueprintFor(player: Player, chance: number): string?
+	if math.random() > chance then
+		return nil
+	end
+	local profile = ctx.DataService.Get(player)
+	if not profile then
+		return nil
+	end
+	local options = {}
+	for _, pair in { { "BlueprintGrapple", "Grapple" }, { "BlueprintBow", "Bow" } } do
+		if not profile.unlocked[pair[2]] and (profile.stash[pair[1]] or 0) == 0 then
+			table.insert(options, pair[1])
+		end
+	end
+	return if #options > 0 then options[math.random(1, #options)] else nil
 end
 
 local function spawnChest(pos: Vector3, rare: boolean, mimic: boolean)
@@ -199,6 +236,12 @@ local function spawnChest(pos: Vector3, rare: boolean, mimic: boolean)
 			end
 		end
 		lootAll(scaleLoot(loot))
+		for _, p in participants do
+			local bp = blueprintFor(p, if rare then 0.45 else 0.35)
+			if bp then
+				ctx.PlayerState.AddLoot(p, { [bp] = 1 })
+			end
+		end
 		Net.Event("Fx"):FireAllClients("ChestOpen", m)
 		task.delay(1.5, function()
 			m:Destroy()
@@ -316,7 +359,7 @@ local function buildPortals()
 	local back = ctx.WorldBuilder.Prompt(anchor, "Zurück ins Camp", "Rückkehrportal", 1)
 	back.Triggered:Connect(function(player)
 		if isParticipant(player) and ctx.PlayerState.IsActive(player) then
-			Expedition.ReturnPlayer(player, true)
+			Expedition.ReturnPlayer(player, true, true)
 		end
 	end)
 
@@ -331,7 +374,7 @@ local function buildPortals()
 	ap.Enabled = false
 	ap.Triggered:Connect(function(player)
 		if bossDead and isParticipant(player) and ctx.PlayerState.IsActive(player) then
-			Expedition.ReturnPlayer(player, true)
+			Expedition.ReturnPlayer(player, true, true)
 		end
 	end)
 end
@@ -434,6 +477,7 @@ local function endRun(reason: string?)
 	disconnected = {}
 	runStart = 0
 	ReplicatedStorage:SetAttribute("RunStart", 0)
+	ReplicatedStorage:SetAttribute("RiftDanger", 0)
 	if reason then
 		ctx.PlayerState.NotifyAll(Players:GetPlayers(), reason, "info")
 	end
@@ -451,9 +495,78 @@ local function joinRun(player: Player)
 	s.inRun = true
 	s.backpack = {}
 	s.protectedLoot = {}
+	s.usedRecall = false
+	s.recalling = false
 	ctx.PlayerState.ResetVitals(player)
 	teleport(player, ctx.WorldBuilder.Points.ZoneArrival)
 	ctx.PlayerState.Sync(player)
+end
+
+-- Rift-Gefahr: je länger das Team bleibt, desto mehr Gegner tauchen auf.
+local function dangerLoop(myStart: number)
+	local cfg = Config.RiftDanger
+	local level = 0
+	local nextWave = 0
+	while phase == "Running" and runStart == myStart do
+		task.wait(1)
+		if phase ~= "Running" or runStart ~= myStart then
+			break
+		end
+		local delay = cfg.StartAfter
+		for _, p in participants do
+			local profile = ctx.DataService.Get(p)
+			if profile and profile.upgrades.Watchtower then
+				delay += cfg.TowerDelay
+				break
+			end
+		end
+		local t = workspace:GetServerTimeNow() - myStart
+		local newLevel = if t < delay then 0 else math.min(cfg.MaxLevel, math.floor((t - delay) / cfg.LevelEvery) + 1)
+		if newLevel ~= level then
+			level = newLevel
+			ReplicatedStorage:SetAttribute("RiftDanger", level)
+			if level > 0 then
+				ctx.PlayerState.NotifyAll(participants, "Die Rift-Gefahr steigt: Stufe " .. level .. ". Mehr Gegner strömen herbei!", "bad")
+			end
+		end
+		if level > 0 and os.clock() >= nextWave then
+			nextWave = os.clock() + cfg.WaveEvery
+			local active = {}
+			for _, p in participants do
+				local root = ctx.PlayerState.GetRoot(p)
+				if ctx.PlayerState.IsActive(p) and root and (root.Position - ctx.WorldBuilder.Points.ArenaCenter).Magnitude > 60 then
+					table.insert(active, p)
+				end
+			end
+			if #active > 0 then
+				local target = active[math.random(1, #active)]
+				local center = (ctx.PlayerState.GetRoot(target) :: BasePart).Position
+				local diff = Config.Difficulties[difficulty]
+				local count = math.min(6, level + #participants - 1)
+				local kinds = { "Riftling", "Rift_Crawler" }
+				if level >= 3 then
+					table.insert(kinds, "Rootstalker")
+				end
+				for _ = 1, count do
+					for _try = 1, 5 do
+						local a = math.random() * math.pi * 2
+						local pos = center + Vector3.new(math.cos(a) * 26, 0, math.sin(a) * 26)
+						local ground = ctx.Entities.GroundAt(pos)
+						if math.abs(ground.Y - center.Y) < 6 then
+							ctx.Entities.SpawnEnemy(kinds[math.random(1, #kinds)], ground, {
+								tag = TAG,
+								hpMult = diff.hp * (1 + 0.1 * level),
+								dmgMult = diff.damage,
+								lootMult = 0.5,
+							})
+							break
+						end
+					end
+				end
+				Net.Event("Fx"):FireAllClients("RiftWave", center)
+			end
+		end
+	end
 end
 
 local function launch()
@@ -479,6 +592,8 @@ local function launch()
 	folder.Parent = workspace
 	runFolder = folder
 	populate(#ready)
+	ReplicatedStorage:SetAttribute("RiftDanger", 0)
+	task.spawn(dangerLoop, runStart)
 	for _, p in ready do
 		joinRun(p)
 	end
@@ -490,8 +605,8 @@ local function launch()
 	ctx.PlayerState.SyncAll()
 end
 
--- Spieler verlässt die Expedition. secure = Beute sichern.
-function Expedition.ReturnPlayer(player: Player, secure: boolean)
+-- Spieler verlässt die Expedition. secure = Beute sichern, survived = regulär zurückgekehrt.
+function Expedition.ReturnPlayer(player: Player, secure: boolean, survived: boolean?)
 	local s = ctx.PlayerState.Get(player)
 	if not s then
 		return
@@ -499,6 +614,10 @@ function Expedition.ReturnPlayer(player: Player, secure: boolean)
 	if secure then
 		ctx.PlayerState.SecureLoot(player)
 	end
+	if survived then
+		ctx.Progress.Milestone(player, "SurviveRun")
+	end
+	s.recalling = false
 	removeFrom(participants, player)
 	local prompt = revivePrompts[player]
 	if prompt then

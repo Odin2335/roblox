@@ -20,6 +20,8 @@ local gui: ScreenGui
 local toastList: Frame
 local objective: TextLabel
 local weaponLabel: TextLabel
+local gearLabel: TextLabel
+local dangerLabel: TextLabel
 local chargeBack: Frame
 local bossFrame: Frame
 local bossFill: Frame
@@ -116,6 +118,24 @@ local function refresh()
 		end
 		runBag.Text = "Rucksack: <b>" .. total .. "</b> ungesichert" .. (if prot > 0 then "  ·  " .. prot .. " Bossbeute" else "")
 	end
+	local tools = s.tools or {}
+	local stash = s.stash or {}
+	local parts = {}
+	table.insert(parts, "Tränke [1]: <b>" .. (stash.Potion or 0) .. "</b>")
+	if tools.CopperBow then
+		table.insert(parts, "Bogen [T]: <b>" .. (stash.Arrow or 0) .. "</b> Pfeile")
+	end
+	local beacons = stash.RecallBeacon or 0
+	if beacons > 0 then
+		table.insert(parts, "Signalgeber [X]: <b>" .. beacons .. "</b>" .. (if s.usedRecall then " (benutzt)" else ""))
+	end
+	local toolNames = {}
+	for _, id in { "CopperPickaxe", "StonePickaxe", "Grapple", "LightArmor" } do
+		if tools[id] and not (id == "StonePickaxe" and tools.CopperPickaxe) then
+			table.insert(toolNames, Config.Gear[id].name)
+		end
+	end
+	gearLabel.Text = table.concat(parts, "  ·  ") .. (if #toolNames > 0 then "\n" .. table.concat(toolNames, " · ") else "\nKeine Spitzhacke – Werkbank!")
 end
 
 local function makeBars(parent: Instance)
@@ -134,6 +154,8 @@ local function makeBars(parent: Instance)
 	chargeBack = chBack
 	weaponLabel = UI.Label("", 13, UI.C.Text, UI.FontBold, { LayoutOrder = 4, Parent = box })
 	weaponLabel.TextStrokeTransparency = 0.6
+	gearLabel = UI.Label("", 12, UI.C.Dim, UI.Font, { LayoutOrder = 5, Parent = box })
+	gearLabel.TextStrokeTransparency = 0.6
 
 	RunService.RenderStepped:Connect(function()
 		local hp = player:GetAttribute("HP") or 100
@@ -188,6 +210,9 @@ local function makeBoss(parent: Instance)
 				local t = math.max(0, workspace:GetServerTimeNow() - start)
 				runTime.Text = string.format("Expedition  %02d:%02d", math.floor(t / 60), math.floor(t % 60))
 				runTime.TextColor3 = if t > 15 * 60 then UI.C.Stamina else UI.C.Text
+				local danger = ReplicatedStorage:GetAttribute("RiftDanger") or 0
+				dangerLabel.Text = if danger > 0 then "Rift-Gefahr: Stufe " .. danger .. " / " .. Config.RiftDanger.MaxLevel else "Rift-Gefahr: ruhig"
+				dangerLabel.TextColor3 = if danger >= 3 then UI.C.Danger elseif danger > 0 then UI.C.Stamina else UI.C.Dim
 			end
 		end
 	end)
@@ -206,6 +231,7 @@ local function makeRunInfo(parent: Instance)
 	}, { UI.Corner(8), UI.Pad(8), UI.List(3), UI.Stroke() })
 	runTime = UI.Label("Expedition 00:00", 15, UI.C.Text, UI.FontBlack, { Parent = runFrame })
 	runBag = UI.Label("", 13, UI.C.Dim, UI.Font, { Parent = runFrame })
+	dangerLabel = UI.Label("", 13, UI.C.Stamina, UI.FontBold, { Parent = runFrame })
 	UI.Label("Beute am <b>Rückkehrportal</b> sichern.", 12, UI.C.Dim, UI.Font, { Parent = runFrame })
 end
 
@@ -295,6 +321,15 @@ local function makeTouchButtons(parent: Instance, actions: Actions)
 	btn("SCHWER", UDim2.fromOffset(60, 150), 64, Color3.fromRGB(120, 70, 50), "Heavy")
 	btn("AUS-\nWEICHEN", UDim2.fromOffset(170, 50), 62, Color3.fromRGB(60, 90, 70), "Dodge")
 	local el = btn("ELEMENT", UDim2.fromOffset(80, 64), 60, Color3.fromRGB(30, 110, 100), "Ability")
+	local bowBtn = btn("BOGEN", UDim2.fromOffset(20, 90), 48, Color3.fromRGB(110, 90, 60), "Bow")
+	btn("TRANK", UDim2.fromOffset(95, 0), 44, Color3.fromRGB(150, 50, 70), "Potion")
+	local recallBtn = btn("RÜCK-\nRUF", UDim2.fromOffset(20, 20), 44, Color3.fromRGB(40, 120, 150), "Recall")
+	bowBtn.Visible = false
+	recallBtn.Visible = false
+	Store.Changed:Connect(function()
+		bowBtn.Visible = (Store.state.tools or {}).CopperBow == true
+		recallBtn.Visible = Store.state.inRun and ((Store.state.stash or {}).RecallBeacon or 0) > 0
+	end)
 	RunService.Heartbeat:Connect(function()
 		el.Visible = player:GetAttribute("HasElement") == true
 		el.BackgroundTransparency = if (player:GetAttribute("Charge") or 0) >= 100 then 0 else 0.6
@@ -344,13 +379,19 @@ function Hud.Init(actions: Actions)
 	if touch then
 		makeTouchButtons(gui, actions)
 	else
-		local hint = UI.Label("Linksklick: leicht · R / Rechtsklick: schwer · Q: ausweichen · F: Element · E: interagieren", 12, UI.C.Dim, UI.Font, {
-			AnchorPoint = Vector2.new(0.5, 1),
-			Position = UDim2.new(0.5, 0, 1, -8),
-			Size = UDim2.new(0.6, 0, 0, 0),
-			TextXAlignment = Enum.TextXAlignment.Center,
-			Parent = gui,
-		})
+		local hint = UI.Label(
+			"Linksklick: leicht · R / Rechtsklick: schwer · Q: ausweichen · F: Element · T: Bogen · 1: Trank · X: Rückruf · E: interagieren",
+			12,
+			UI.C.Dim,
+			UI.Font,
+			{
+				AnchorPoint = Vector2.new(0.5, 1),
+				Position = UDim2.new(0.5, 0, 1, -8),
+				Size = UDim2.new(0.6, 0, 0, 0),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Parent = gui,
+			}
+		)
 		hint.TextStrokeTransparency = 0.6
 	end
 

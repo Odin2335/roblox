@@ -152,7 +152,81 @@ local function ability()
 	ActionEvent:FireServer("Ability")
 end
 
+local lastBow = 0
+local function bow()
+	if not canAct() then
+		return
+	end
+	local tools = Store.state.tools or {}
+	if not tools.CopperBow then
+		ActionEvent:FireServer("Bow", Vector3.new(0, 0, -1)) -- Server erklärt, was fehlt
+		return
+	end
+	local now = os.clock()
+	if now - lastBow < Config.Bow.Cooldown then
+		return
+	end
+	lastBow = now
+	local r = root()
+	if not r then
+		return
+	end
+	local dir: Vector3
+	if UserInputService.MouseEnabled and not UserInputService.TouchEnabled then
+		local hit = player:GetMouse().Hit.Position
+		dir = hit - (r.Position + Vector3.new(0, 1.5, 0))
+		local flat = Vector3.new(hit.X, r.Position.Y, hit.Z)
+		if (flat - r.Position).Magnitude > 0.5 then
+			r.CFrame = CFrame.lookAt(r.Position, flat)
+		end
+	else
+		aim(40)
+		dir = r.CFrame.LookVector
+		-- leicht nach unten/oben auf das Ziel zielen
+		local folder = workspace:FindFirstChild("Entities")
+		if folder then
+			local best, bestD = nil, 60
+			for _, m in folder:GetChildren() do
+				if m:IsA("Model") and m.PrimaryPart then
+					local off = m.PrimaryPart.Position - r.Position
+					if off.Magnitude < bestD and r.CFrame.LookVector:Dot(off.Unit) > 0.8 then
+						best, bestD = m.PrimaryPart.Position, off.Magnitude
+					end
+				end
+			end
+			if best then
+				dir = best - (r.Position + Vector3.new(0, 1.5, 0))
+			end
+		end
+	end
+	if dir.Magnitude > 0.1 then
+		ActionEvent:FireServer("Bow", dir.Unit)
+	end
+end
+
+local function potion()
+	if player:GetAttribute("Downed") ~= true then
+		ActionEvent:FireServer("Potion")
+	end
+end
+
+local function recall()
+	if canAct() and Store.state.inRun then
+		ActionEvent:FireServer("Recall")
+	end
+end
+
 function Input.Action(action: string)
+	if action == "Bow" then
+		bow()
+		return
+	elseif action == "Potion" then
+		potion()
+		return
+	elseif action == "Recall" then
+		recall()
+		return
+	end
 	if action == "Light" then
 		attack(false)
 	elseif action == "Heavy" then
@@ -211,6 +285,12 @@ function Input.Init(cb: Callbacks)
 			dodge()
 		elseif key == Enum.KeyCode.F or key == Enum.KeyCode.ButtonY then
 			ability()
+		elseif key == Enum.KeyCode.T or key == Enum.KeyCode.ButtonL2 then
+			bow()
+		elseif key == Enum.KeyCode.One or key == Enum.KeyCode.DPadDown then
+			potion()
+		elseif key == Enum.KeyCode.X or key == Enum.KeyCode.DPadRight then
+			recall()
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input, processed)

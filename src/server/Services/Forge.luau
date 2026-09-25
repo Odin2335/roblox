@@ -154,30 +154,104 @@ local handlers: { [string]: (Player, any, any) -> () } = {}
 handlers.Smelt = function(player, amount)
 	local n = if type(amount) == "number" then math.clamp(math.floor(amount), 1, 999) else 1
 	local profile = ctx.DataService.Get(player)
+	local big = profile.upgrades.BigFurnace == true
+	local input = if big then Config.Smelt.bigInput else Config.Smelt.inputAmount
+	local output = if big then Config.Smelt.bigOutput else 1
 	local have = profile.stash[Config.Smelt.input] or 0
-	n = math.min(n, math.floor(have / Config.Smelt.inputAmount))
+	n = math.min(n, math.floor(have / input))
 	if n <= 0 then
-		ctx.PlayerState.Notify(player, "Du brauchst " .. Config.Smelt.inputAmount .. " Kupfererz pro Barren.", "bad")
+		ctx.PlayerState.Notify(player, "Du brauchst " .. input .. " Kupfererz pro Schmelzvorgang.", "bad")
 		return
 	end
-	ctx.DataService.Take(player, { [Config.Smelt.input] = n * Config.Smelt.inputAmount })
-	ctx.DataService.Give(player, { [Config.Smelt.output] = n })
-	ctx.PlayerState.Notify(player, n .. " Kupferbarren geschmolzen.", "good")
+	ctx.DataService.Take(player, { [Config.Smelt.input] = n * input })
+	ctx.DataService.Give(player, { [Config.Smelt.output] = n * output })
+	ctx.PlayerState.Notify(player, (n * output) .. " Kupferbarren geschmolzen.", "good")
+	ctx.Progress.Milestone(player, "SmeltCopper")
 	Net.Event("Fx"):FireAllClients("Smelt", player)
 end
 
-handlers.Research = function(player, form)
-	local def = type(form) == "string" and Config.Forms[form]
+handlers.Research = function(player, id)
 	local profile = ctx.DataService.Get(player)
-	if not def or not def.research or profile.unlocked[form] then
+	if type(id) ~= "string" or profile.unlocked[id] then
 		return
 	end
-	if not ctx.DataService.Take(player, def.research) then
-		ctx.PlayerState.Notify(player, "Nicht genug Materialien für die Forschung.", "bad")
+	local form = Config.Forms[id]
+	local extra = Config.Research[id]
+	local cost = if form then form.research elseif extra then extra.cost else nil
+	if not cost then
 		return
 	end
-	profile.unlocked[form] = true
-	ctx.PlayerState.Notify(player, "Neue Waffenform erforscht: " .. def.name, "milestone")
+	if not ctx.DataService.Take(player, cost) then
+		ctx.PlayerState.Notify(player, "Dir fehlen Bauplan oder Materialien.", "bad")
+		return
+	end
+	profile.unlocked[id] = true
+	ctx.PlayerState.Notify(
+		player,
+		"Erforscht: " .. (if form then form.name else extra.name) .. (if extra then " – jetzt an der Werkbank herstellbar." else ""),
+		"milestone"
+	)
+end
+
+handlers.CraftGear = function(player, id)
+	local def = type(id) == "string" and Config.Gear[id]
+	local profile = ctx.DataService.Get(player)
+	if not def then
+		return
+	end
+	if not def.item and profile.tools[id] then
+		ctx.PlayerState.Notify(player, "Du besitzt " .. def.name .. " bereits.", "info")
+		return
+	end
+	if def.requires and not profile.tools[def.requires] then
+		ctx.PlayerState.Notify(player, "Benötigt zuerst: " .. Config.Gear[def.requires].name, "bad")
+		return
+	end
+	if def.research and not profile.unlocked[def.research] then
+		ctx.PlayerState.Notify(player, "Erst den Bauplan am Forschungstisch entschlüsseln.", "bad")
+		return
+	end
+	if not ctx.DataService.Take(player, def.cost) then
+		ctx.PlayerState.Notify(player, "Nicht genug Materialien.", "bad")
+		return
+	end
+	if def.item then
+		local n = def.amount or 1
+		if def.item == "Potion" and profile.upgrades.HerbGarden then
+			n *= 2
+		end
+		ctx.DataService.Give(player, { [def.item] = n })
+		ctx.PlayerState.Notify(player, "Hergestellt: " .. n .. "× " .. Config.Items[def.item].name, "good")
+		return
+	end
+	profile.tools[id] = true
+	ctx.PlayerState.Notify(player, "Hergestellt: " .. def.name, "milestone")
+	if id == "StonePickaxe" or id == "CopperPickaxe" or id == "Locator" then
+		ctx.Progress.Milestone(player, id)
+	end
+	if id == "Locator" then
+		ctx.PlayerState.Notify(player, "Das Ortungsgerät pulsiert: Jenseits von Verdant Scar liegen die Glutadern ... (nächstes Gebiet)", "boss")
+	end
+end
+
+handlers.BuildUpgrade = function(player, id)
+	local def = type(id) == "string" and Config.Upgrades[id]
+	local profile = ctx.DataService.Get(player)
+	if not def or profile.upgrades[id] then
+		return
+	end
+	if def.requires and not profile.milestones[def.requires] then
+		ctx.PlayerState.Notify(player, "Überlebe zuerst eine Expedition.", "bad")
+		return
+	end
+	if not ctx.DataService.Take(player, def.cost) then
+		ctx.PlayerState.Notify(player, "Nicht genug Materialien.", "bad")
+		return
+	end
+	profile.upgrades[id] = true
+	ctx.PlayerState.Notify(player, "Camp-Ausbau fertig: " .. def.name, "milestone")
+	ctx.Progress.Milestone(player, "BaseUpgrade")
+	ctx.Gear.RefreshCamp()
 end
 
 handlers.Equip = function(player, id)

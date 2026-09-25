@@ -417,6 +417,70 @@ end
 
 handlers.Smelt = function() end
 
+handlers.Arrow = function(p: Player, from: Vector3, to: Vector3)
+	local len = (to - from).Magnitude
+	if len < 0.5 then
+		return
+	end
+	local arrow = part(Vector3.new(0.15, 0.15, 2.2), CFrame.lookAt(from, to), Color3.fromRGB(230, 210, 170))
+	arrow.Material = Enum.Material.SmoothPlastic
+	local t = math.min(0.4, len / 160)
+	TweenService:Create(arrow, TweenInfo.new(t, Enum.EasingStyle.Linear), { CFrame = CFrame.lookAt(to, to + (to - from).Unit) }):Play()
+	Debris:AddItem(arrow, t + 0.05)
+	local trail = part(Vector3.new(0.05, 0.05, len), CFrame.lookAt((from + to) / 2, to), Color3.fromRGB(255, 255, 255))
+	trail.Transparency = 0.6
+	fade(trail, 0.25)
+	local _ = p
+end
+
+handlers.Heal = function(p: Player)
+	local char = p.Character
+	local r = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if r then
+		burst(r.Position, Color3.fromRGB(110, 230, 130), 10, 4)
+		floatText(r.Position + Vector3.new(0, 4, 0), "+ HEILUNG", Color3.fromRGB(110, 230, 130), 18)
+	end
+	if p == player then
+		flash(Color3.fromRGB(80, 220, 110))
+	end
+end
+
+handlers.Recall = function(p: Player, duration: number)
+	local char = p.Character
+	local r = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not r then
+		return
+	end
+	local beam = part(
+		Vector3.new(0.2, 3, 3),
+		CFrame.new(r.Position - Vector3.new(0, 2.8, 0)) * CFrame.Angles(0, 0, math.rad(90)),
+		Color3.fromRGB(120, 230, 255),
+		Enum.PartType.Cylinder
+	)
+	beam.Transparency = 0.3
+	TweenService:Create(
+		beam,
+		TweenInfo.new(duration, Enum.EasingStyle.Linear),
+		{ Size = Vector3.new(40, 3, 3), CFrame = CFrame.new(r.Position + Vector3.new(0, 17, 0)) * CFrame.Angles(0, 0, math.rad(90)) }
+	):Play()
+	Debris:AddItem(beam, duration + 0.1)
+end
+
+handlers.Rope = function(p: Player, from: Vector3, to: Vector3)
+	local len = (to - from).Magnitude
+	local rope = part(Vector3.new(0.2, 0.2, len), CFrame.lookAt((from + to) / 2, to), Color3.fromRGB(170, 140, 90))
+	rope.Material = Enum.Material.Fabric
+	fade(rope, 0.6)
+	local _ = p
+end
+
+handlers.RiftWave = function(pos: Vector3)
+	ring(pos - Vector3.new(0, 2.5, 0), 28, Config.Colors.Rift, 0.8)
+	if nearMe(pos, 50) then
+		flash(Config.Colors.Rift)
+	end
+end
+
 function Fx.Init(flashFn: (Color3) -> ())
 	flash = flashFn
 	Net.Event("Fx").OnClientEvent:Connect(function(kind: string, ...)

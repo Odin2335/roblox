@@ -42,6 +42,10 @@ AssetLoader.Heights = {
 	Lantern = 6,
 	Campfire = 2,
 	Stone_Sword = 4,
+	Anvil_Forge = 5,
+	Fiber_Bush = 3,
+	Herb_Patch = 1.6,
+	Hard_Copper_Deposit = 4.2,
 }
 
 --------------------------------------------------------------------------------
@@ -497,6 +501,71 @@ builders.Hollow_Warden = function(m)
 		P(m, Vector3.new(0.5, 1.6, 0.5), at(-4.6 + i * 0.35, 9.6, (i - 2) * 0.6, 0, 0, 10 - i * 10), C.Rift, Neon)
 		P(m, Vector3.new(0.5, 1.6, 0.5), at(3.9 + i * 0.35, 9.6, (i - 2) * 0.6, 0, 0, i * 10 - 10), C.Rift, Neon)
 	end
+end
+
+builders.Anvil_Forge = function(m)
+	-- Esse
+	P(m, Vector3.new(5, 3, 4), at(-3, 1.5, 0), C.StoneDark, { material = Enum.Material.Cobblestone })
+	P(m, Vector3.new(2.2, 5, 2.2), at(-3.8, 5.5, 0.6), C.StoneDark, { material = Enum.Material.Cobblestone })
+	local coal = P(m, Vector3.new(3.6, 0.4, 2.8), at(-3, 3.1, 0), C.Fire, { material = Enum.Material.Neon, light = 16 })
+	fire(coal, 3)
+	-- Amboss auf Holzklotz
+	P(m, Vector3.new(2.2, 2.2, 2.2), at(2.2, 1.1, 0), C.Bark, { material = Enum.Material.Wood, shape = Enum.PartType.Cylinder })
+	P(m, Vector3.new(1.4, 0.8, 1.2), at(2.2, 2.6, 0), C.IronDark, { material = Enum.Material.Metal })
+	P(m, Vector3.new(3.2, 0.8, 1.3), at(2.2, 3.4, 0), C.Iron, { material = Enum.Material.Metal, name = "Anvil" })
+	P(m, Vector3.new(1.2, 0.8, 0.8), at(4.3, 3.4, 0, 0, 0, -10), C.Iron, { material = Enum.Material.Metal, shape = Enum.PartType.Wedge })
+	P(m, Vector3.new(0.3, 1.8, 0.3), at(1.6, 4.2, 0.4, 0, 0, 60), C.Wood, {})
+	P(m, Vector3.new(0.8, 0.5, 0.5), at(0.9, 4.6, 0.4, 0, 0, 60), C.IronDark, { material = Enum.Material.Metal })
+	-- Wasserfass
+	P(m, Vector3.new(1.6, 1.8, 1.8), at(5.2, 0.9, 1.6, 0, 0, 90), C.Wood, { material = Enum.Material.Wood, shape = Enum.PartType.Cylinder })
+	P(m, Vector3.new(0.1, 1.5, 1.5), at(5.2, 1.81, 1.6, 0, 0, 90), Color3.fromRGB(60, 110, 150), { shape = Enum.PartType.Cylinder })
+end
+
+builders.Fiber_Bush = function(m)
+	local rng = Random.new(9)
+	for i = 1, 7 do
+		local a = i / 7 * math.pi * 2
+		local h = rng:NextNumber(1.6, 3)
+		P(
+			m,
+			Vector3.new(0.35, h, 0.35),
+			at(math.cos(a) * 0.7, h / 2, math.sin(a) * 0.7, math.cos(a) * 18, 0, math.sin(a) * 18),
+			Color3.fromRGB(170, 190, 110),
+			{ material = Enum.Material.Grass }
+		)
+	end
+	P(m, Vector3.new(2, 1.2, 2), at(0, 0.6, 0), Color3.fromRGB(110, 140, 70), { material = Enum.Material.Grass, shape = Enum.PartType.Ball })
+end
+
+builders.Herb_Patch = function(m)
+	for i = 1, 5 do
+		local a = i / 5 * math.pi * 2
+		P(
+			m,
+			Vector3.new(0.7, 0.9, 0.2),
+			at(math.cos(a) * 0.8, 0.45, math.sin(a) * 0.8, 0, math.deg(a), 20),
+			Color3.fromRGB(70, 170, 90),
+			{ material = Enum.Material.Grass }
+		)
+	end
+	P(m, Vector3.new(0.5, 0.5, 0.5), at(0, 1.1, 0), Color3.fromRGB(230, 90, 120), { material = Enum.Material.Neon, shape = Enum.PartType.Ball })
+	P(m, Vector3.new(0.4, 0.4, 0.4), at(0.7, 0.9, 0.4), Color3.fromRGB(240, 230, 120), { material = Enum.Material.Neon, shape = Enum.PartType.Ball })
+end
+
+builders.Hard_Copper_Deposit = function(m)
+	rockCluster(m, 0, 0, 2.6, 4, Color3.fromRGB(40, 44, 52), 5, 4)
+	for i = 1, 5 do
+		local a = i * 1.25
+		P(
+			m,
+			Vector3.new(0.9, 0.7, 0.9),
+			at(math.cos(a) * 1.9, 1.6 + (i % 3) * 0.7, math.sin(a) * 1.5, i * 30, i * 25, 0),
+			C.Copper,
+			{ material = Enum.Material.Metal }
+		)
+	end
+	P(m, Vector3.new(0.5, 1.6, 0.5), at(0.4, 3.6, 0.2, 10, 0, 15), C.Rift, { material = Enum.Material.Neon, light = 8 })
+	P(m, Vector3.new(4.6, 0.25, 0.3), at(0, 2.2, -1.9, 0, 0, 12), Color3.fromRGB(20, 22, 26), {})
 end
 
 builders.Stone_Sword = function(m)

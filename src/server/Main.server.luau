@@ -16,6 +16,7 @@ local order = {
 	"WorldBuilder",
 	"Combat",
 	"Forge",
+	"Gear",
 	"Expedition",
 }
 
@@ -41,7 +42,7 @@ Net.Event("Request").OnServerEvent:Connect(function(player, action, a, b)
 end)
 
 -- Startreihenfolge: Welt vor den Spielern
-for _, name in { "Entities", "WorldBuilder", "PlayerState", "Combat", "Forge", "Expedition", "DataService" } do
+for _, name in { "Entities", "WorldBuilder", "Gear", "PlayerState", "Combat", "Forge", "Expedition", "DataService" } do
 	local service = ctx[name]
 	if service.Start then
 		service.Start()

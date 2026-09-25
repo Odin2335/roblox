@@ -27,6 +27,8 @@ export type Profile = {
 	equipped: string?,
 	nextWeaponId: number,
 	unlocked: { [string]: boolean },
+	tools: { [string]: boolean },
+	upgrades: { [string]: boolean },
 	blueprints: { Blueprint },
 	milestones: { [string]: boolean },
 	quests: { [string]: string }, -- "open" | "done" | "claimed"
@@ -54,6 +56,8 @@ local function newProfile(): Profile
 		equipped = nil,
 		nextWeaponId = 1,
 		unlocked = { Sword = true },
+		tools = {},
+		upgrades = {},
 		blueprints = {},
 		milestones = {},
 		quests = {},

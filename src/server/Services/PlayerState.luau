@@ -25,6 +25,10 @@ export type State = {
 	inRun: boolean,
 	backpack: { [string]: number },
 	protectedLoot: { [string]: number },
+	lastPotion: number,
+	lastBow: number,
+	usedRecall: boolean,
+	recalling: boolean,
 }
 
 local PlayerState = {}
@@ -53,6 +57,10 @@ local function newState(): State
 		inRun = false,
 		backpack = {},
 		protectedLoot = {},
+		lastPotion = 0,
+		lastBow = 0,
+		usedRecall = false,
+		recalling = false,
 	}
 end
 
@@ -169,6 +177,9 @@ function PlayerState.Sync(player: Player)
 			weapons = profile.weapons,
 			equipped = profile.equipped,
 			unlocked = profile.unlocked,
+			tools = profile.tools,
+			upgrades = profile.upgrades,
+			usedRecall = s.usedRecall,
 			blueprints = profile.blueprints,
 			milestones = profile.milestones,
 			quests = profile.quests,
@@ -233,6 +244,14 @@ function PlayerState.Damage(player: Player, amount: number, _source: string?): b
 		s.perfectDodgeUntil = now + 2
 		Net.Event("Fx"):FireAllClients("PerfectDodge", player)
 		return false
+	end
+	local profile = ctx.DataService.Get(player)
+	if profile and profile.tools.LightArmor then
+		amount *= 1 - Config.ArmorReduction
+	end
+	if s.recalling then
+		s.recalling = false
+		PlayerState.Notify(player, "Rückruf unterbrochen!", "bad")
 	end
 	s.hp = math.max(0, s.hp - amount)
 	local hum = PlayerState.GetHumanoid(player)
@@ -438,6 +457,7 @@ function PlayerState.OnProfileLoaded(player: Player)
 		task.spawn(onCharacter, player, player.Character)
 	end
 	ctx.Progress.OnLoaded(player)
+	ctx.Gear.RefreshCamp()
 	PlayerState.Sync(player)
 end
 

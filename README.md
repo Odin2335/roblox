@@ -2,7 +2,9 @@
 
 Koop-Action-RPG für Roblox (1–4 Spieler). Du erkundest das Rift, sammelst Erz, Elementkerne und Monsterteile und schmiedest daraus deine eigene Waffe.
 
-**Kreislauf:** Waffe schmieden → Expedition starten → Beute sammeln → rechtzeitig am Rückkehrportal sichern → neue Waffe schmieden → tiefer ins Rift.
+**Kreislauf:** Vorbereiten → Expedition starten → erkunden und sammeln → Risiko abwägen → zurückkehren → craften und schmieden → weiter vordringen.
+
+> *„Geh weiter, sammle seltene Beute und komm rechtzeitig zurück, um daraus Ausrüstung zu bauen, die dir neue Wege öffnet.“*
 
 ---
 
@@ -52,6 +54,7 @@ Die Größe wird automatisch angepasst. Fremde Skripte in Creator-Store-Modellen
 |---|---|---|
 | `Riftling`, `Rootstalker`, `Lantern_Wraith`, `Rift_Crawler`, `Burrow_Mimic`, `Hollow_Warden` | Gegner & Boss | `models/02_Enemies/...` |
 | `Copper_Deposit`, `Stone_Deposit`, `Rift_Deposit`, `Timber_Pile` | Abbaubare Ressourcen | `models/03_Resources/...` |
+| `Hard_Copper_Deposit`, `Fiber_Bush`, `Herb_Patch`, `Anvil_Forge` | Harte Ader, Fasern, Kräuter, Schmiede | nicht im Pack → Creator Store oder Ersatzmodell |
 | `Workbench`, `Smelting_Furnace`, `Storage_Chest`, `Return_Portal` | Stationen, Truhen, Portale | `models/04_Structures/...` |
 | `Research_Table`, `Expedition_Board`, `Training_Dummy` | Stationen | nicht im Pack → Creator Store oder Ersatzmodell |
 | `Tree`, `Rock`, `Tent`, `Ruin_Pillar`, `Ruin_Wall`, `Lantern`, `Campfire` | Deko | Creator Store oder Ersatzmodell |
@@ -69,6 +72,9 @@ Hinweise:
 | | PC | Controller | Handy |
 |---|---|---|---|
 | Leichter Angriff | Linksklick | R2 | ANGRIFF |
+| Kupferbogen | T | L2 | BOGEN |
+| Heiltrank | 1 | Steuerkreuz ↓ | TRANK |
+| Rückruf-Signalgeber | X | Steuerkreuz → | RÜCKRUF |
 | Schwerer Angriff | R / kurzer Rechtsklick | R1 | SCHWER |
 | Ausweichen (kurz unverwundbar) | Q | B | AUSWEICHEN |
 | Elementfähigkeit (Ladung voll) | F | Y | ELEMENT |
@@ -79,7 +85,13 @@ Hinweise:
 
 ## Was im MVP steckt
 
-- **Rift Camp:** Schmiede, Schmelzofen, Forschungstisch, Expeditionstafel, Lagerkiste (Materialien an Mitspieler geben) und ein Trainingsplatz mit Übungspuppen.
+- **Rift Camp:** Schmiede, Werkbank, Schmelzofen, Forschungstisch, Expeditionstafel, Lagerkiste (Materialien an Mitspieler geben) und ein Trainingsplatz mit Übungspuppen.
+- **Werkbank:** Stein- und Kupferspitzhacke, Seilwerfer, Kupferbogen, leichte Rüstung (−20 % Schaden), Rift-Ortungsgerät. Dazu Verbrauchsgüter: Heiltränke (aus Heilkräutern), Pfeile und Rückruf-Signalgeber.
+- **Werkzeuge öffnen Wege:** Normale Adern brauchen die Steinspitzhacke, harte Kupferadern die Kupferspitzhacke. Der Seilwerfer überquert den Abgrund am sicheren Pfad zum versteckten Höhlenbereich. Der Bogen ist stark gegen schwebende Wraiths.
+- **Ressourcen:** Holz, Stein, Kupfererz, Riftkristall, Fasern und Heilkräuter. Das Waldgebiet rund um den Außenposten ist die sichere Einstiegszone.
+- **Baupläne als Beute:** Seilwerfer und Kupferbogen findest du in Truhen, das Rift-Ortungsgerät beim Hollow Warden. Der Forschungstisch entschlüsselt sie.
+- **Camp-Ausbau:** Großer Schmelzofen (3 Erz → 2 Barren), Kräuterbeet (doppelte Tränke), Rift-Wachturm (Gefahr steigt später). Die Ausbauten stehen sichtbar im Camp.
+- **Rift-Gefahr:** Ab Minute 5 steigt sie alle 2 Minuten um eine Stufe (max. 5), und Gegnerwellen tauchen bei den Spielern auf. Der Signalgeber erlaubt einmal pro Expedition die Notflucht mit Beute.
 - **Schmiede:** Waffenform + bis zu zwei Elementkerne + Monsterteil. Die Vorschau zeigt Effekte und Kosten. Danach folgt der Härtungsschritt: 3 Schläge im richtigen Moment ergeben die Qualität *Grob*, *Solide*, *Fein* oder *Meisterhaft*. Das Timing kann die Waffe nie zerstören.
 - **3 Waffenformen:** Schwert (lädt schneller auf), Kriegshammer (betäubt, größere Explosionen; erforschen), Speer (Reichweite, Effekte reichen weiter; erforschen).
 - **4 Elemente:** Glut (Brand), Frost (Verlangsamen/Einfrieren), Sturm (Ladung springt über), Schatten (Markieren → schwerer Treffer).
@@ -88,7 +100,7 @@ Hinweise:
 - **Verdant Scar:** Außenposten (Beute sichern), Ruinen mit Rift-Barriere und Elementschrein, Kupfermine mit sicherem und riskantem Pfad sowie Frostsiegel-Versteck, Rift-Kammer. Gegner, Erze und Truhen wechseln bei jedem Lauf.
 - **6 Gegnertypen + Boss:** Der Hollow Warden hat drei Angriffe: Bodenstoß, Wurzelschlag und Rift-Ausbruch (Kristalle zerstören!). Er skaliert mit der Gruppengröße.
 - **Risiko:** Rucksack vs. gesichertes Lager, Niederschlag + Wiederbeleben, Teamwipe = 50 % der ungesicherten Grundmaterialien weg. Kerne, Monsterteile und Bossbeute bleiben erhalten. Nach einem Verbindungsabbruch kommst du mit deinem Rucksack in den Lauf zurück.
-- **Fortschritt:** 7 Meilensteine, 4 Aufgaben mit Belohnung, Baupläne speichern und nachbauen. Speichern läuft über DataStore.
+- **Fortschritt:** 14 Meilensteine (von der Steinspitzhacke bis zum Rift-Ortungsgerät), 4 Aufgaben mit Belohnung, Baupläne speichern und nachbauen. Speichern läuft über DataStore.
 - **Sicherheit:** Der Server prüft Schaden, Treffer, Beute, Crafting und Speicherstände. Der Client sendet nur Absichten.
 
 ## Projektstruktur
@@ -104,7 +116,8 @@ src/server/Services/
   PlayerState    Leben, Ausdauer, Ladung, Rucksack, Waffe in der Hand
   Combat         Angriffe, Elemente, Kombinationen, Fähigkeiten
   Entities       Gegner-KI, Boss, Statuseffekte, Barrieren, Übungspuppen
-  Forge          Schmiede, Härtung, Ofen, Forschung, Arsenal, Lagerkiste
+  Forge          Schmiede, Härtung, Werkbank, Ofen, Forschung, Camp-Ausbau, Arsenal, Lagerkiste
+  Gear           Bogen, Heiltränke, Rückruf, Seilwerfer, sichtbare Camp-Ausbauten
   Expedition     Lobby, Lauf, Beute sichern, Wiederbeleben, Teamwipe
   Progress       Meilensteine und Aufgaben
 src/client/     HUD, Menüs, Eingabe (PC/Controller/Handy), Effekte
@@ -115,6 +128,7 @@ Balancing: fast alles steht in `src/shared/Config.luau`, zum Beispiel Schaden, K
 
 ## Nächste Schritte
 
+- Werkzeuge sichtbar in der Hand (Spitzhacken, Seilwerfer und Bogen aus dem Asset-Pack).
 - Animationen für Spieler und Gegner (Gelenkpunkte in `rigs.json`) sowie Sounds.
 - Weitere Studio-Deko aus dem Creator Store.
 - Zweites Gebiet **Glutadern** mit Gluteisen, Schmiedegolem und Lava-Wegen. Dafür einfach einen neuen Abschnitt in `WorldBuilder.Spawns` und neue Einträge in `Config` anlegen.

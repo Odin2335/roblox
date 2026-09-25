@@ -370,12 +370,15 @@ end
 --------------------------------------------------------------------------------
 -- Eingang
 --------------------------------------------------------------------------------
-local function onAction(player: Player, action: any)
+local function onAction(player: Player, action: any, arg: any)
 	if type(action) ~= "string" then
 		return
 	end
 	local s = ctx.PlayerState.Get(player)
 	if not s or not ctx.PlayerState.IsActive(player) then
+		return
+	end
+	if ctx.Gear.Action(player, action, arg) then
 		return
 	end
 	local now = os.clock()

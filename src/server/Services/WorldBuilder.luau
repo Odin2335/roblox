@@ -37,9 +37,19 @@ WorldBuilder.Spawns = {
 	Outpost = {
 		enemies = { { "Riftling", V(-10, 0, -650) }, { "Riftling", V(12, 0, -655) }, { "Riftling", V(0, 0, -668) }, { "Riftling", V(-22, 0, -662) } },
 		enemyCount = 3,
-		nodes = { V(25, 0, -600), V(-35, 0, -625), V(30, 0, -640), V(-32, 0, -590), V(12, 0, -662) },
-		nodeKinds = { "Copper_Deposit", "Stone_Deposit", "Timber_Pile" },
-		nodeCount = 3,
+		nodes = {
+			V(25, 0, -600),
+			V(-35, 0, -625),
+			V(30, 0, -640),
+			V(-32, 0, -590),
+			V(12, 0, -662),
+			V(-60, 0, -600),
+			V(60, 0, -615),
+			V(-55, 0, -655),
+			V(58, 0, -660),
+		},
+		nodeKinds = { "Stone_Deposit", "Timber_Pile", "Timber_Pile", "Fiber_Bush", "Fiber_Bush", "Herb_Patch", "Herb_Patch", "Copper_Deposit" },
+		nodeCount = 7,
 	},
 	Ruins = {
 		enemies = {
@@ -54,8 +64,8 @@ WorldBuilder.Spawns = {
 		},
 		enemyCount = 6,
 		nodes = { V(-55, 0, -700), V(50, 0, -705), V(-62, 0, -760), V(55, 0, -780), V(-10, 0, -742), V(15, 0, -815), V(-40, 0, -812) },
-		nodeKinds = { "Copper_Deposit", "Stone_Deposit", "Timber_Pile", "Rift_Deposit" },
-		nodeCount = 4,
+		nodeKinds = { "Copper_Deposit", "Stone_Deposit", "Timber_Pile", "Rift_Deposit", "Herb_Patch", "Fiber_Bush" },
+		nodeCount = 5,
 		chests = { V(-58, 0, -730), V(45, 0, -725), V(-22, 0, -800), V(52, 0, -810) },
 		chestCount = 2,
 		mimicChance = 0.25,
@@ -64,7 +74,7 @@ WorldBuilder.Spawns = {
 		enemies = { { "Riftling", V(-40, 0, -870) }, { "Riftling", V(-30, 0, -930) }, { "Rootstalker", V(-45, 0, -955) }, { "Riftling", V(-26, 0, -890) } },
 		enemyCount = 3,
 		nodes = { V(-50, 0, -850), V(-26, 0, -870), V(-52, 0, -895), V(-22, 0, -912), V(-50, 0, -935), V(-24, 0, -955), V(-50, 0, -975) },
-		nodeKinds = { "Copper_Deposit", "Copper_Deposit", "Stone_Deposit", "Copper_Deposit", "Stone_Deposit", "Timber_Pile" },
+		nodeKinds = { "Copper_Deposit", "Copper_Deposit", "Stone_Deposit", "Copper_Deposit", "Stone_Deposit", "Hard_Copper_Deposit" },
 		nodeCount = 5,
 	},
 	RiskyMine = {
@@ -79,11 +89,22 @@ WorldBuilder.Spawns = {
 		enemyCount = 5,
 		hpMult = 1.25,
 		nodes = { V(25, 0, -850), V(52, 0, -872), V(22, 0, -932), V(52, 0, -902), V(50, 0, -968) },
-		nodeKinds = { "Rift_Deposit", "Rift_Deposit", "Copper_Deposit" },
+		nodeKinds = { "Rift_Deposit", "Rift_Deposit", "Copper_Deposit", "Hard_Copper_Deposit" },
 		nodeCount = 3,
 		chests = { V(50, 0, -855), V(24, 0, -975), V(52, 0, -932) },
 		chestCount = 2,
 		mimicCount = 1,
+		rare = true,
+	},
+	-- Versteckter Höhlenbereich hinter dem Abgrund (nur mit Seilwerfer)
+	Cave = {
+		enemies = { { "Rift_Crawler", V(-110, 0, -915) }, { "Rift_Crawler", V(-105, 0, -880) }, { "Rootstalker", V(-118, 0, -898) } },
+		enemyCount = 2,
+		nodes = { V(-120, 0, -922), V(-100, 0, -922), V(-122, 0, -878), V(-104, 0, -876), V(-114, 0, -900) },
+		nodeKinds = { "Hard_Copper_Deposit", "Hard_Copper_Deposit", "Rift_Deposit", "Herb_Patch" },
+		nodeCount = 4,
+		chests = { V(-122, 0, -900) },
+		chestCount = 1,
 		rare = true,
 	},
 }
@@ -219,7 +240,8 @@ local function buildCamp()
 	spawn.Color = Color3.fromRGB(70, 78, 88)
 	spawn.Parent = world
 
-	station("Forge", "Workbench", V(-26, 0, -6), 90, "Schmiede", "Forge")
+	station("Forge", "Anvil_Forge", V(-26, 0, -6), 90, "Schmiede", "Forge")
+	station("Workshop", "Workbench", V(24, 0, 18), -90, "Werkbank", "Workshop")
 	station("Furnace", "Smelting_Furnace", V(-42, 0, 16), 60, "Schmelzofen", "Furnace")
 	station("Research", "Research_Table", V(26, 0, -6), -90, "Forschungstisch", "Research")
 	station("Chest", "Storage_Chest", V(42, 0, 16), -60, "Lagerkiste", "Chest")
@@ -319,6 +341,9 @@ local function buildZone()
 	place("Lantern", outpost + V(-8, 0, 30))
 	place("Lantern", outpost + V(8, 0, 30))
 	sign(outpost + V(6, 0, 34), "Außenposten", Color3.fromRGB(40, 25, 15))
+	-- Waldgebiet rund um den Außenposten
+	scatter("Tree", outpost, 115, 34, 41, 44)
+	scatter("Rock", outpost, 110, 8, 42, 44)
 
 	-- 2. Überwucherte Ruinen
 	local rng = Random.new(77)
@@ -364,6 +389,33 @@ local function buildZone()
 		mineGate(-60, -15, z)
 		mineGate(15, 60, z)
 	end
+	-- Höhlenbereich hinter dem Abgrund (links, nur mit Seilwerfer)
+	fill(V(-110, 10, -900), V(36, 20, 60), Enum.Material.Air)
+	fill(V(-110, -0.5, -900), V(36, 1, 60), Enum.Material.Slate)
+	fill(V(-76, 8, -895), V(32, 16, 20), Enum.Material.Air)
+	fill(V(-77, -24, -895), V(22, 48, 22), Enum.Material.Air)
+	for i = 0, 5 do
+		local c = part(
+			V(1, 4, 1),
+			CFrame.new(V(-110 + math.cos(i) * 15, 2, -900 + math.sin(i * 1.7) * 25)) * CFrame.Angles(math.rad(12), i, math.rad(-8)),
+			Color3.fromRGB(63, 224, 197),
+			Enum.Material.Neon
+		)
+		local l = Instance.new("PointLight")
+		l.Color = c.Color
+		l.Range = 14
+		l.Parent = c
+	end
+	sign(V(-58, 0, -902), "Abgrund – Seilwerfer!", Color3.fromRGB(140, 30, 20))
+	local function grappleAnchor(pos: Vector3, dest: Vector3, cave: boolean)
+		part(V(0.8, 6, 0.8), CFrame.new(pos + V(0, 3, 0)), Color3.fromRGB(80, 52, 34), Enum.Material.Wood)
+		local hook = part(V(1.4, 1.4, 1.4), CFrame.new(pos + V(0, 6.4, 0)), Color3.fromRGB(63, 224, 197), Enum.Material.Neon)
+		hook.Name = "GrappleAnchor"
+		ctx.Gear.SetupGrapple(hook, dest, cave)
+	end
+	grappleAnchor(V(-63, 0, -895), V(-97, 0, -895), true)
+	grappleAnchor(V(-90, 0, -889), V(-56, 0, -895), false)
+
 	-- Versteck hinter dem Frostsiegel
 	fill(V(104, 9, -910), V(30, 18, 34), Enum.Material.Air)
 	fill(V(76, 8, -910), V(30, 16, 14), Enum.Material.Air)

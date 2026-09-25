@@ -28,6 +28,7 @@ local toast: (string, string?) -> () = function() end
 local TITLES = {
 	Forge = "Schmiede",
 	Furnace = "Schmelzofen",
+	Workshop = "Werkbank",
 	Research = "Forschungstisch",
 	Chest = "Gemeinsame Lagerkiste",
 	Board = "Expeditionstafel",
@@ -425,39 +426,121 @@ local function renderFurnace()
 	local ore, bars = Store.Count("CopperOre"), Store.Count("CopperBar")
 	UI.Label("Der Schmelzofen verarbeitet Kupfererz zu Barren – dem Grundmetall jeder Waffe.", 14, UI.C.Dim, UI.Font, { Parent = box })
 	UI.Label(string.format("<b>Kupfererz:</b> %d      <b>Kupferbarren:</b> %d", ore, bars), 18, UI.C.Text, UI.Font, { Parent = box })
-	UI.Label(Config.Smelt.inputAmount .. " Kupfererz → 1 Kupferbarren", 14, UI.C.Copper, UI.FontBold, { Parent = box })
+	local big = (Store.state.upgrades or {}).BigFurnace == true
+	local input = if big then Config.Smelt.bigInput else Config.Smelt.inputAmount
+	local output = if big then Config.Smelt.bigOutput else 1
+	UI.Label(
+		input .. " Kupfererz → " .. output .. " Kupferbarren" .. (if big then "  (Großer Schmelzofen)" else ""),
+		14,
+		UI.C.Copper,
+		UI.FontBold,
+		{ Parent = box }
+	)
 	local r = row(box, 10, 44)
 	UI.Button("1 Barren schmelzen", UI.C.Copper, function()
 		send("Smelt", 1)
 	end, { Size = UDim2.new(0.5, -4, 1, 0), Parent = r })
-	UI.Button("Alles schmelzen (" .. math.floor(ore / Config.Smelt.inputAmount) .. ")", UI.C.Card, function()
+	UI.Button("Alles schmelzen (" .. math.floor(ore / input) * output .. " Barren)", UI.C.Card, function()
 		send("Smelt", 999)
 	end, { Size = UDim2.new(0.5, -4, 1, 0), Parent = r })
 end
 
+local function researchCard(
+	parent: Instance,
+	title: string,
+	desc: string,
+	done: boolean,
+	cost: { [string]: number }?,
+	action: () -> (),
+	label: string,
+	note: string?
+)
+	local card = UI.Card({ Parent = parent })
+	UI.List(4).Parent = card
+	UI.Label("<b>" .. title .. "</b>", 15, UI.C.Text, UI.Font, { Parent = card })
+	UI.Label(desc, 12, UI.C.Dim, UI.Font, { Parent = card })
+	if done then
+		UI.Label(UI.Colored("✔ Fertig", UI.C.Good), 13, UI.C.Text, UI.FontBold, { Parent = card })
+	elseif cost then
+		UI.Label("Kosten: " .. costText(cost), 12, UI.C.Text, UI.Font, { Parent = card })
+		if note then
+			UI.Label(UI.Colored(note, UI.C.Stamina), 12, UI.C.Text, UI.Font, { Parent = card })
+		end
+		UI.Button(label, if hasAll(cost) and not note then UI.C.Copper else UI.C.Bg, action, { Size = UDim2.new(0, 170, 0, 30), Parent = card })
+	end
+end
+
 local function renderResearch()
-	local box = UI.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = content }, { UI.List(10) })
-	UI.Label(
-		"Hier schaltest du neue Waffenformen frei. Riftkristalle findest du in den Ruinen und auf dem riskanten Pfad.",
-		14,
-		UI.C.Dim,
-		UI.Font,
-		{ Parent = box }
-	)
+	local s = Store.state
+	local left = UI.Scroll({ Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = left
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = left })
+	local right = UI.Scroll({ Position = UDim2.new(0.5, 6, 0, 0), Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = right
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = right })
+
+	section(left, "WAFFENFORMEN", 0)
 	for _, id in Config.FormOrder do
 		local def = Config.Forms[id]
-		local card = UI.Card({ Parent = box })
-		UI.List(4).Parent = card
-		UI.Label("<b>" .. def.name .. "</b>", 16, UI.C.Text, UI.Font, { Parent = card })
-		UI.Label(def.desc, 12, UI.C.Dim, UI.Font, { Parent = card })
-		if Store.state.unlocked[id] then
-			UI.Label(UI.Colored("✔ Erforscht", UI.C.Good), 13, UI.C.Text, UI.FontBold, { Parent = card })
-		elseif def.research then
-			UI.Label("Forschung: " .. costText(def.research), 12, UI.C.Text, UI.Font, { Parent = card })
-			UI.Button("Erforschen", if hasAll(def.research) then UI.C.Copper else UI.C.Bg, function()
-				send("Research", id)
-			end, { Size = UDim2.new(0, 160, 0, 32), Parent = card })
+		researchCard(left, def.name, def.desc, s.unlocked[id] == true, def.research, function()
+			send("Research", id)
+		end, "Erforschen")
+	end
+	section(left, "GEFUNDENE BAUPLÄNE ENTSCHLÜSSELN", 10)
+	for _, id in Config.ResearchOrder do
+		local def = Config.Research[id]
+		local gear = Config.Gear[if id == "Bow" then "CopperBow" else id]
+		local bpItem = next(def.cost)
+		for k in def.cost do
+			if Config.Items[k].kind == "Blueprint" then
+				bpItem = k
+			end
 		end
+		local hasBp = Store.Count(bpItem) > 0
+		researchCard(left, def.name, gear.desc, s.unlocked[id] == true, def.cost, function()
+			send("Research", id)
+		end, "Entschlüsseln", if hasBp then nil else "Bauplan noch nicht gefunden")
+	end
+
+	section(right, "CAMP-AUSBAU", 0)
+	UI.Label("Ausbauten sind im Camp sichtbar und wirken für dich dauerhaft.", 12, UI.C.Dim, UI.Font, { Parent = right })
+	local upgrades = s.upgrades or {}
+	for _, id in Config.UpgradeOrder do
+		local def = Config.Upgrades[id]
+		local locked = def.requires and not s.milestones[def.requires]
+		researchCard(right, def.name, def.desc, upgrades[id] == true, def.cost, function()
+			send("BuildUpgrade", id)
+		end, "Bauen", if locked then "Erst eine Expedition überleben" else nil)
+	end
+end
+
+local function renderWorkshop()
+	local s = Store.state
+	local tools = s.tools or {}
+	local left = UI.Scroll({ Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = left
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = left })
+	local right = UI.Scroll({ Position = UDim2.new(0.5, 6, 0, 0), Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = right
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = right })
+	section(left, "WERKZEUGE & AUSRÜSTUNG", 0)
+	section(right, "VERBRAUCHSGÜTER", 0)
+	for _, id in Config.GearOrder do
+		local def = Config.Gear[id]
+		local parent = if def.item then right else left
+		local note = nil
+		if def.requires and not tools[def.requires] then
+			note = "Benötigt: " .. Config.Gear[def.requires].name
+		elseif def.research and not s.unlocked[def.research] then
+			note = "Bauplan am Forschungstisch entschlüsseln"
+		end
+		local desc = def.desc
+		if def.item then
+			desc ..= "  (Im Lager: " .. Store.Count(def.item) .. ")"
+		end
+		researchCard(parent, def.name, desc, not def.item and tools[id] == true, def.cost, function()
+			send("CraftGear", id)
+		end, "Herstellen", note)
 	end
 end
 
@@ -768,8 +851,10 @@ local function renderHelp()
 	UI.List(8).Parent = scroll
 	local text = {
 		"<b>Der Kreislauf:</b> Waffe schmieden → Expedition starten → Beute und Elementkerne sammeln → rechtzeitig am Rückkehrportal sichern → neue Waffe schmieden → tiefer ins Rift.",
-		"<b>Steuerung (PC):</b> Linksklick leichter Angriff · R oder Rechtsklick schwerer Angriff · Q Ausweichen (kurz unverwundbar) · F Elementfähigkeit · E interagieren · I Arsenal · J Aufgaben.",
-		"<b>Controller:</b> R2 leicht · R1 schwer · B ausweichen · Y Element · X interagieren.   <b>Handy:</b> Knöpfe rechts unten.",
+		"<b>Steuerung (PC):</b> Linksklick leichter Angriff · R oder Rechtsklick schwerer Angriff · Q Ausweichen (kurz unverwundbar) · F Elementfähigkeit · T Bogen · 1 Heiltrank · X Rückruf-Signalgeber · E interagieren · I Arsenal · J Aufgaben.",
+		"<b>Controller:</b> R2 leicht · R1 schwer · B ausweichen · Y Element · L2 Bogen · Steuerkreuz unten Trank · Steuerkreuz rechts Rückruf · X interagieren.   <b>Handy:</b> Knöpfe rechts unten.",
+		"<b>Werkzeuge öffnen Wege:</b> Die Steinspitzhacke baut normale Adern ab, die Kupferspitzhacke auch harte Adern. Mit dem Seilwerfer überquerst du den Abgrund am sicheren Pfad zum versteckten Höhlenbereich. Baupläne findest du in Truhen.",
+		"<b>Rift-Gefahr:</b> Nach 5 Minuten steigt die Gefahr alle 2 Minuten um eine Stufe, und immer mehr Gegner tauchen auf. Rechtzeitig zurückkehren! Der Rückruf-Signalgeber bringt dich einmal pro Expedition samt Beute sicher heim.",
 		"<b>Ausdauer</b> (gelb) sinkt bei Angriffen und beim Ausweichen. <b>Elementladung</b> füllt sich durch Treffer und Ausweichen – ist sie voll, drücke F.",
 		"<b>Perfektes Ausweichen:</b> Weiche genau dann aus, wenn ein angekündigter Angriff (rote Fläche) trifft.",
 	}
@@ -800,6 +885,7 @@ local RENDER: { [string]: () -> () } = {
 	Inventory = renderInventory,
 	Quests = renderQuests,
 	Help = renderHelp,
+	Workshop = renderWorkshop,
 }
 
 --------------------------------------------------------------------------------

@@ -1043,7 +1043,14 @@ local function think(e: Entity, now: number)
 				return
 			elseif dist <= 40 then
 				e.ai.nextAttack = now + def.cooldown + 0.8
-				bossRootStrike(e, target)
+				-- Wurzelschlag trifft bevorzugt, wer zuletzt angegriffen hat
+				local attacker = e.lastHitBy
+				local aRoot = attacker and ctx.PlayerState.IsActive(attacker) and ctx.PlayerState.GetRoot(attacker)
+				if attacker and aRoot and (aRoot.Position - e.root.Position).Magnitude <= 45 then
+					bossRootStrike(e, attacker)
+				else
+					bossRootStrike(e, target)
+				end
 				return
 			end
 		end

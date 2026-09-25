@@ -22,7 +22,7 @@
 
 local Config = {}
 
-Config.Version = "MVP v2 – Die Elementarschmiede"
+Config.Version = "MVP v2 – Die Elementarschmiede + Expeditionsausrüstung"
 
 --------------------------------------------------------------------------------
 -- Farben
@@ -44,7 +44,7 @@ Config.Colors = {
 --------------------------------------------------------------------------------
 export type ItemDef = {
 	name: string,
-	kind: "Basic" | "Core" | "Part",
+	kind: "Basic" | "Core" | "Part" | "Blueprint" | "Consumable",
 	color: Color3,
 	desc: string,
 }
@@ -55,6 +55,26 @@ Config.Items = {
 	Stone = { name = "Stein", kind = "Basic", color = Color3.fromRGB(130, 140, 150), desc = "Für schwere Waffenköpfe." },
 	Wood = { name = "Holz", kind = "Basic", color = Color3.fromRGB(120, 80, 50), desc = "Griffe und Schäfte." },
 	RiftCrystal = { name = "Riftkristall", kind = "Basic", color = Config.Colors.Rift, desc = "Bindet Elementkerne an eine Waffe." },
+	Fiber = { name = "Fasern", kind = "Basic", color = Color3.fromRGB(170, 190, 110), desc = "Für Rüstung, Bogensehnen und Seile." },
+	Herb = { name = "Heilkräuter", kind = "Basic", color = Color3.fromRGB(90, 200, 110), desc = "Werden an der Werkbank zu Heiltränken." },
+
+	Potion = { name = "Heiltrank", kind = "Consumable", color = Color3.fromRGB(230, 70, 90), desc = "Heilt 45 % deines Lebens. Taste 1." },
+	Arrow = { name = "Pfeil", kind = "Consumable", color = Color3.fromRGB(200, 170, 120), desc = "Munition für den Kupferbogen." },
+	RecallBeacon = {
+		name = "Rückruf-Signalgeber",
+		kind = "Consumable",
+		color = Color3.fromRGB(120, 230, 255),
+		desc = "Einmal pro Expedition: Notflucht ins Camp, Beute bleibt gesichert. Taste X.",
+	},
+
+	BlueprintGrapple = { name = "Bauplan: Seilwerfer", kind = "Blueprint", color = Color3.fromRGB(240, 220, 160), desc = "Am Forschungstisch entschlüsseln." },
+	BlueprintBow = { name = "Bauplan: Kupferbogen", kind = "Blueprint", color = Color3.fromRGB(240, 220, 160), desc = "Am Forschungstisch entschlüsseln." },
+	BlueprintLocator = {
+		name = "Bauplan: Rift-Ortungsgerät",
+		kind = "Blueprint",
+		color = Color3.fromRGB(240, 220, 160),
+		desc = "Beute des Hollow Warden. Am Forschungstisch entschlüsseln.",
+	},
 
 	CoreEmber = { name = "Glutkern", kind = "Core", color = Color3.fromRGB(255, 120, 40), desc = "Element Glut." },
 	CoreFrost = { name = "Frostkern", kind = "Core", color = Color3.fromRGB(120, 200, 255), desc = "Element Frost." },
@@ -99,6 +119,14 @@ Config.ItemOrder = {
 	"Stone",
 	"Wood",
 	"RiftCrystal",
+	"Fiber",
+	"Herb",
+	"Potion",
+	"Arrow",
+	"RecallBeacon",
+	"BlueprintGrapple",
+	"BlueprintBow",
+	"BlueprintLocator",
 	"CoreEmber",
 	"CoreFrost",
 	"CoreStorm",
@@ -110,7 +138,107 @@ Config.ItemOrder = {
 	"PartMimicTooth",
 }
 
-Config.StarterStash = { CopperBar = 5, Wood = 4, Stone = 2, RiftCrystal = 2 }
+Config.StarterStash = { CopperBar = 5, Wood = 6, Stone = 4, RiftCrystal = 2, Potion = 2 }
+
+--------------------------------------------------------------------------------
+-- Ausrüstung (Werkbank): Werkzeuge öffnen neue Wege, nicht nur mehr Schaden
+--------------------------------------------------------------------------------
+export type GearDef = {
+	name: string,
+	desc: string,
+	cost: { [string]: number },
+	requires: string?, -- vorher benötigte Ausrüstung
+	research: string?, -- muss am Forschungstisch entschlüsselt sein
+	amount: number?, -- Verbrauchsgüter: Stückzahl pro Herstellung
+	item: string?, -- Verbrauchsgut, das ins Lager kommt
+}
+
+Config.GearOrder = { "StonePickaxe", "CopperPickaxe", "Grapple", "CopperBow", "LightArmor", "Locator", "Potion", "Arrow", "RecallBeacon" }
+
+Config.Gear = {
+	StonePickaxe = { name = "Steinspitzhacke", desc = "Baut normale Stein-, Kupfer- und Riftadern ab.", cost = { Wood = 2, Stone = 2 } },
+	CopperPickaxe = {
+		name = "Kupferspitzhacke",
+		desc = "Baut auch harte Erzadern ab – mehr Kupfer und Riftkristalle.",
+		cost = { CopperBar = 3, Wood = 2 },
+		requires = "StonePickaxe",
+	},
+	Grapple = {
+		name = "Seilwerfer",
+		desc = "Überquert Abgründe. Öffnet den versteckten Höhlenbereich in der Kupfermine.",
+		cost = { CopperBar = 3, Fiber = 4, Wood = 2 },
+		research = "Grapple",
+	},
+	CopperBow = {
+		name = "Kupferbogen",
+		desc = "Fernkampf (Taste T). Ideal gegen schwebende Wraiths. Verbraucht Pfeile.",
+		cost = { CopperBar = 2, Wood = 3, Fiber = 3 },
+		research = "Bow",
+	},
+	LightArmor = { name = "Leichte Rüstung", desc = "Verringert erlittenen Schaden um 20 %.", cost = { Fiber = 6, CopperBar = 2 } },
+	Locator = {
+		name = "Rift-Ortungsgerät",
+		desc = "Ortet neue Rift-Gebiete jenseits von Verdant Scar. Dein erstes Langzeitziel.",
+		cost = { RiftCrystal = 8, CopperBar = 5 },
+		research = "Locator",
+	},
+	Potion = { name = "Heiltrank ×1", desc = "Heilt 45 % Leben (Taste 1).", cost = { Herb = 2 }, amount = 1, item = "Potion" },
+	Arrow = { name = "Pfeile ×6", desc = "Munition für den Kupferbogen.", cost = { Wood = 1, Stone = 1 }, amount = 6, item = "Arrow" },
+	RecallBeacon = {
+		name = "Rückruf-Signalgeber",
+		desc = "Notflucht aus der Expedition (einmal pro Lauf).",
+		cost = { CopperBar = 1, RiftCrystal = 1 },
+		amount = 1,
+		item = "RecallBeacon",
+	},
+} :: { [string]: GearDef }
+
+-- Forschungstisch: Baupläne entschlüsseln (zusätzlich zu Hammer/Speer)
+Config.Research = {
+	Grapple = { name = "Seilwerfer", cost = { BlueprintGrapple = 1, RiftCrystal = 2 } },
+	Bow = { name = "Kupferbogen", cost = { BlueprintBow = 1, Wood = 2 } },
+	Locator = { name = "Rift-Ortungsgerät", cost = { BlueprintLocator = 1, RiftCrystal = 3 } },
+}
+Config.ResearchOrder = { "Grapple", "Bow", "Locator" }
+
+Config.Bow = { Damage = 16, Range = 90, Cooldown = 0.7, Stamina = 6 }
+Config.Potion = { Heal = 0.45, Cooldown = 6 }
+Config.Recall = { Channel = 3 }
+Config.ArmorReduction = 0.2
+
+--------------------------------------------------------------------------------
+-- Camp-Ausbauten (sichtbar im Camp, wirken für den Besitzer)
+--------------------------------------------------------------------------------
+Config.UpgradeOrder = { "BigFurnace", "HerbGarden", "Watchtower" }
+Config.Upgrades = {
+	BigFurnace = {
+		name = "Großer Schmelzofen",
+		desc = "3 Kupfererz ergeben 2 Barren statt 2 → 1.",
+		cost = { Stone = 10, CopperBar = 4 },
+		requires = "SurviveRun",
+	},
+	HerbGarden = {
+		name = "Kräuterbeet",
+		desc = "Jeder gebraute Heiltrank ergibt zwei Tränke.",
+		cost = { Wood = 8, Herb = 4, Fiber = 4 },
+		requires = "SurviveRun",
+	},
+	Watchtower = {
+		name = "Rift-Wachturm",
+		desc = "Die Rift-Gefahr steigt in deinen Expeditionen 2 Minuten später an.",
+		cost = { Wood = 10, Stone = 8, RiftCrystal = 4 },
+		requires = "SurviveRun",
+	},
+}
+
+-- Rift-Gefahr: je länger das Team bleibt, desto mehr Gegner erscheinen
+Config.RiftDanger = {
+	StartAfter = 300, -- Sekunden
+	LevelEvery = 120,
+	WaveEvery = 40,
+	MaxLevel = 5,
+	TowerDelay = 120,
+}
 
 --------------------------------------------------------------------------------
 -- Elemente & Kombinationen
@@ -273,7 +401,7 @@ function Config.QualityFromScore(score: number): number
 	return 1
 end
 
-Config.Smelt = { input = "CopperOre", inputAmount = 2, output = "CopperBar" }
+Config.Smelt = { input = "CopperOre", inputAmount = 2, output = "CopperBar", bigInput = 3, bigOutput = 2 }
 
 --------------------------------------------------------------------------------
 -- Spieler
@@ -410,6 +538,9 @@ Config.Enemies = {
 		drops = {
 			{ item = "PartWardenHorn", min = 1, max = 1, chance = 1 },
 			{ item = "RiftCrystal", min = 4, max = 6, chance = 1 },
+			{ item = "BlueprintLocator", min = 1, max = 1, chance = 1 },
+			{ item = "BlueprintGrapple", min = 1, max = 1, chance = 0.3 },
+			{ item = "BlueprintBow", min = 1, max = 1, chance = 0.3 },
 		},
 	},
 } :: { [string]: EnemyDef }
@@ -448,21 +579,36 @@ Config.Quests = {
 }
 
 Config.Milestones = {
+	{ id = "StonePickaxe", text = "Steinspitzhacke herstellen", hint = "Geh zur Werkbank (rechts vorne) und stelle eine Steinspitzhacke her." },
 	{ id = "FirstWeapon", text = "Erste Waffe schmieden", hint = "Geh zur Schmiede (links) und stelle ein Schwert her." },
+	{
+		id = "SurviveRun",
+		text = "Erste Expedition überleben",
+		hint = "Starte an der Expeditionstafel eine Expedition und sichere Beute am Rückkehrportal.",
+	},
+	{ id = "SmeltCopper", text = "Kupfererz finden und schmelzen", hint = "Baue Kupferadern ab, bring das Erz zurück und schmilz es im Schmelzofen." },
+	{ id = "CopperPickaxe", text = "Kupferspitzhacke herstellen", hint = "Mit der Kupferspitzhacke baust du harte Erzadern ab." },
 	{
 		id = "Barrier",
 		text = "Eine Barriere im Gebiet überwinden",
-		hint = "Starte eine Expedition. In den Ruinen versperrt eine Rift-Barriere einen Schrein (schwere Angriffe!).",
+		hint = "In den Ruinen versperrt eine Rift-Barriere einen Schrein (schwere Angriffe!).",
 	},
 	{ id = "FirstCore", text = "Den ersten Elementkern bergen", hint = "Hinter der Rift-Barriere wartet ein Elementkern. Bring ihn sicher zurück." },
 	{ id = "ElementWeapon", text = "Eine Elementwaffe schmieden", hint = "Setze in der Schmiede einen Elementkern in eine Waffe ein." },
+	{
+		id = "ReachCave",
+		text = "Mit dem Seilwerfer den Höhlenbereich erreichen",
+		hint = "Finde in Truhen den Bauplan für den Seilwerfer, entschlüssele ihn und überquere den Abgrund am sicheren Pfad.",
+	},
 	{ id = "MonsterPart", text = "Ein Monsterteil einsetzen", hint = "Bring ein Monsterteil zurück und setze es in der Schmiede oder im Arsenal ein." },
 	{ id = "Warden", text = "Den Hollow Warden besiegen", hint = "Die Rift-Kammer liegt hinter der Kupfermine." },
+	{ id = "BaseUpgrade", text = "Den ersten Basis-Ausbau freischalten", hint = "Baue am Forschungstisch einen Camp-Ausbau (z. B. den großen Schmelzofen)." },
 	{
 		id = "Rebuild",
 		text = "Einen Bauplan mit neuer Elementkombination nachbauen",
 		hint = "Speichere einen Bauplan, lade ihn in der Schmiede und ändere ein Element.",
 	},
+	{ id = "Locator", text = "Das Rift-Ortungsgerät bauen", hint = "Der Warden hinterlässt einen Bauplan. Entschlüssele ihn und baue das Gerät." },
 }
 
 return Config
@@ -566,6 +712,7 @@ local order = {
 	"WorldBuilder",
 	"Combat",
 	"Forge",
+	"Gear",
 	"Expedition",
 }
 
@@ -591,7 +738,7 @@ Net.Event("Request").OnServerEvent:Connect(function(player, action, a, b)
 end)
 
 -- Startreihenfolge: Welt vor den Spielern
-for _, name in { "Entities", "WorldBuilder", "PlayerState", "Combat", "Forge", "Expedition", "DataService" } do
+for _, name in { "Entities", "WorldBuilder", "Gear", "PlayerState", "Combat", "Forge", "Expedition", "DataService" } do
 	local service = ctx[name]
 	if service.Start then
 		service.Start()
@@ -653,6 +800,10 @@ AssetLoader.Heights = {
 	Lantern = 6,
 	Campfire = 2,
 	Stone_Sword = 4,
+	Anvil_Forge = 5,
+	Fiber_Bush = 3,
+	Herb_Patch = 1.6,
+	Hard_Copper_Deposit = 4.2,
 }
 
 --------------------------------------------------------------------------------
@@ -1108,6 +1259,71 @@ builders.Hollow_Warden = function(m)
 		P(m, Vector3.new(0.5, 1.6, 0.5), at(-4.6 + i * 0.35, 9.6, (i - 2) * 0.6, 0, 0, 10 - i * 10), C.Rift, Neon)
 		P(m, Vector3.new(0.5, 1.6, 0.5), at(3.9 + i * 0.35, 9.6, (i - 2) * 0.6, 0, 0, i * 10 - 10), C.Rift, Neon)
 	end
+end
+
+builders.Anvil_Forge = function(m)
+	-- Esse
+	P(m, Vector3.new(5, 3, 4), at(-3, 1.5, 0), C.StoneDark, { material = Enum.Material.Cobblestone })
+	P(m, Vector3.new(2.2, 5, 2.2), at(-3.8, 5.5, 0.6), C.StoneDark, { material = Enum.Material.Cobblestone })
+	local coal = P(m, Vector3.new(3.6, 0.4, 2.8), at(-3, 3.1, 0), C.Fire, { material = Enum.Material.Neon, light = 16 })
+	fire(coal, 3)
+	-- Amboss auf Holzklotz
+	P(m, Vector3.new(2.2, 2.2, 2.2), at(2.2, 1.1, 0), C.Bark, { material = Enum.Material.Wood, shape = Enum.PartType.Cylinder })
+	P(m, Vector3.new(1.4, 0.8, 1.2), at(2.2, 2.6, 0), C.IronDark, { material = Enum.Material.Metal })
+	P(m, Vector3.new(3.2, 0.8, 1.3), at(2.2, 3.4, 0), C.Iron, { material = Enum.Material.Metal, name = "Anvil" })
+	P(m, Vector3.new(1.2, 0.8, 0.8), at(4.3, 3.4, 0, 0, 0, -10), C.Iron, { material = Enum.Material.Metal, shape = Enum.PartType.Wedge })
+	P(m, Vector3.new(0.3, 1.8, 0.3), at(1.6, 4.2, 0.4, 0, 0, 60), C.Wood, {})
+	P(m, Vector3.new(0.8, 0.5, 0.5), at(0.9, 4.6, 0.4, 0, 0, 60), C.IronDark, { material = Enum.Material.Metal })
+	-- Wasserfass
+	P(m, Vector3.new(1.6, 1.8, 1.8), at(5.2, 0.9, 1.6, 0, 0, 90), C.Wood, { material = Enum.Material.Wood, shape = Enum.PartType.Cylinder })
+	P(m, Vector3.new(0.1, 1.5, 1.5), at(5.2, 1.81, 1.6, 0, 0, 90), Color3.fromRGB(60, 110, 150), { shape = Enum.PartType.Cylinder })
+end
+
+builders.Fiber_Bush = function(m)
+	local rng = Random.new(9)
+	for i = 1, 7 do
+		local a = i / 7 * math.pi * 2
+		local h = rng:NextNumber(1.6, 3)
+		P(
+			m,
+			Vector3.new(0.35, h, 0.35),
+			at(math.cos(a) * 0.7, h / 2, math.sin(a) * 0.7, math.cos(a) * 18, 0, math.sin(a) * 18),
+			Color3.fromRGB(170, 190, 110),
+			{ material = Enum.Material.Grass }
+		)
+	end
+	P(m, Vector3.new(2, 1.2, 2), at(0, 0.6, 0), Color3.fromRGB(110, 140, 70), { material = Enum.Material.Grass, shape = Enum.PartType.Ball })
+end
+
+builders.Herb_Patch = function(m)
+	for i = 1, 5 do
+		local a = i / 5 * math.pi * 2
+		P(
+			m,
+			Vector3.new(0.7, 0.9, 0.2),
+			at(math.cos(a) * 0.8, 0.45, math.sin(a) * 0.8, 0, math.deg(a), 20),
+			Color3.fromRGB(70, 170, 90),
+			{ material = Enum.Material.Grass }
+		)
+	end
+	P(m, Vector3.new(0.5, 0.5, 0.5), at(0, 1.1, 0), Color3.fromRGB(230, 90, 120), { material = Enum.Material.Neon, shape = Enum.PartType.Ball })
+	P(m, Vector3.new(0.4, 0.4, 0.4), at(0.7, 0.9, 0.4), Color3.fromRGB(240, 230, 120), { material = Enum.Material.Neon, shape = Enum.PartType.Ball })
+end
+
+builders.Hard_Copper_Deposit = function(m)
+	rockCluster(m, 0, 0, 2.6, 4, Color3.fromRGB(40, 44, 52), 5, 4)
+	for i = 1, 5 do
+		local a = i * 1.25
+		P(
+			m,
+			Vector3.new(0.9, 0.7, 0.9),
+			at(math.cos(a) * 1.9, 1.6 + (i % 3) * 0.7, math.sin(a) * 1.5, i * 30, i * 25, 0),
+			C.Copper,
+			{ material = Enum.Material.Metal }
+		)
+	end
+	P(m, Vector3.new(0.5, 1.6, 0.5), at(0.4, 3.6, 0.2, 10, 0, 15), C.Rift, { material = Enum.Material.Neon, light = 8 })
+	P(m, Vector3.new(4.6, 0.25, 0.3), at(0, 2.2, -1.9, 0, 0, 12), Color3.fromRGB(20, 22, 26), {})
 end
 
 builders.Stone_Sword = function(m)
@@ -1610,12 +1826,15 @@ end
 --------------------------------------------------------------------------------
 -- Eingang
 --------------------------------------------------------------------------------
-local function onAction(player: Player, action: any)
+local function onAction(player: Player, action: any, arg: any)
 	if type(action) ~= "string" then
 		return
 	end
 	local s = ctx.PlayerState.Get(player)
 	if not s or not ctx.PlayerState.IsActive(player) then
+		return
+	end
+	if ctx.Gear.Action(player, action, arg) then
 		return
 	end
 	local now = os.clock()
@@ -1709,6 +1928,8 @@ export type Profile = {
 	equipped: string?,
 	nextWeaponId: number,
 	unlocked: { [string]: boolean },
+	tools: { [string]: boolean },
+	upgrades: { [string]: boolean },
 	blueprints: { Blueprint },
 	milestones: { [string]: boolean },
 	quests: { [string]: string }, -- "open" | "done" | "claimed"
@@ -1736,6 +1957,8 @@ local function newProfile(): Profile
 		equipped = nil,
 		nextWeaponId = 1,
 		unlocked = { Sword = true },
+		tools = {},
+		upgrades = {},
 		blueprints = {},
 		milestones = {},
 		quests = {},
@@ -2959,7 +3182,14 @@ local function think(e: Entity, now: number)
 				return
 			elseif dist <= 40 then
 				e.ai.nextAttack = now + def.cooldown + 0.8
-				bossRootStrike(e, target)
+				-- Wurzelschlag trifft bevorzugt, wer zuletzt angegriffen hat
+				local attacker = e.lastHitBy
+				local aRoot = attacker and ctx.PlayerState.IsActive(attacker) and ctx.PlayerState.GetRoot(attacker)
+				if attacker and aRoot and (aRoot.Position - e.root.Position).Magnitude <= 45 then
+					bossRootStrike(e, attacker)
+				else
+					bossRootStrike(e, target)
+				end
 				return
 			end
 		end
@@ -3239,27 +3469,46 @@ local function randomPart(): string
 	return parts[math.random(1, #parts)]
 end
 
-local NODE_YIELD: { [string]: { string | number } } = {
-	Copper_Deposit = { "CopperOre", 3, 4 },
-	Stone_Deposit = { "Stone", 2, 3 },
-	Timber_Pile = { "Wood", 2, 3 },
-	Rift_Deposit = { "RiftCrystal", 2, 3 },
+-- Ressourcenknoten: Ertrag und benötigtes Werkzeug
+local NODES = {
+	Copper_Deposit = { item = "CopperOre", min = 3, max = 4, tool = "StonePickaxe" },
+	Stone_Deposit = { item = "Stone", min = 2, max = 3, tool = "StonePickaxe" },
+	Rift_Deposit = { item = "RiftCrystal", min = 2, max = 3, tool = "StonePickaxe" },
+	Hard_Copper_Deposit = { item = "CopperOre", min = 5, max = 7, tool = "CopperPickaxe", bonus = { RiftCrystal = 1 }, label = "Harte Kupferader" },
+	Timber_Pile = { item = "Wood", min = 2, max = 3 },
+	Fiber_Bush = { item = "Fiber", min = 2, max = 3 },
+	Herb_Patch = { item = "Herb", min = 1, max = 2 },
 }
 
 local function spawnNode(kind: string, pos: Vector3)
+	local def = NODES[kind]
 	local folder = runFolder :: Folder
 	local m = ctx.WorldBuilder.Place(kind, pos, math.random(0, 359), nil, folder)
-	local prompt = ctx.WorldBuilder.Prompt(ctx.WorldBuilder.PromptAnchor(m), "Abbauen", Config.Items[NODE_YIELD[kind][1] :: string].name, 1.1)
+	local title = def.label or Config.Items[def.item].name
+	if def.tool then
+		title ..= " (" .. Config.Gear[def.tool].name .. ")"
+	end
+	local verb = if def.tool then "Abbauen" else "Sammeln"
+	local prompt = ctx.WorldBuilder.Prompt(ctx.WorldBuilder.PromptAnchor(m), verb, title, if def.tool then 1.1 else 0.6)
 	local used = false
 	prompt.Triggered:Connect(function(player)
 		if used or not isParticipant(player) or not ctx.PlayerState.IsActive(player) then
 			return
 		end
+		local profile = ctx.DataService.Get(player)
+		if def.tool and not (profile and profile.tools[def.tool]) then
+			ctx.PlayerState.Notify(player, "Dafür brauchst du eine " .. Config.Gear[def.tool].name .. " (Werkbank).", "bad")
+			return
+		end
 		used = true
-		local y = NODE_YIELD[kind]
-		local item = y[1] :: string
-		ctx.PlayerState.AddLoot(player, scaleLoot({ [item] = math.random(y[2] :: number, y[3] :: number) }))
-		Net.Event("Fx"):FireAllClients("Harvest", pos)
+		local loot = { [def.item] = math.random(def.min, def.max) }
+		if def.bonus then
+			for k, v in def.bonus do
+				loot[k] = (loot[k] or 0) + v
+			end
+		end
+		ctx.PlayerState.AddLoot(player, scaleLoot(loot))
+		Net.Event("Fx"):FireAllClients("Harvest", pos, def.tool)
 		for _, d in m:GetDescendants() do
 			if d:IsA("BasePart") then
 				TweenService:Create(d, TweenInfo.new(0.4), { Transparency = 1 }):Play()
@@ -3269,6 +3518,24 @@ local function spawnNode(kind: string, pos: Vector3)
 			m:Destroy()
 		end)
 	end)
+end
+
+-- Bauplan-Chance in Truhen (nur Baupläne, die der Spieler noch nicht hat)
+local function blueprintFor(player: Player, chance: number): string?
+	if math.random() > chance then
+		return nil
+	end
+	local profile = ctx.DataService.Get(player)
+	if not profile then
+		return nil
+	end
+	local options = {}
+	for _, pair in { { "BlueprintGrapple", "Grapple" }, { "BlueprintBow", "Bow" } } do
+		if not profile.unlocked[pair[2]] and (profile.stash[pair[1]] or 0) == 0 then
+			table.insert(options, pair[1])
+		end
+	end
+	return if #options > 0 then options[math.random(1, #options)] else nil
 end
 
 local function spawnChest(pos: Vector3, rare: boolean, mimic: boolean)
@@ -3314,6 +3581,12 @@ local function spawnChest(pos: Vector3, rare: boolean, mimic: boolean)
 			end
 		end
 		lootAll(scaleLoot(loot))
+		for _, p in participants do
+			local bp = blueprintFor(p, if rare then 0.45 else 0.35)
+			if bp then
+				ctx.PlayerState.AddLoot(p, { [bp] = 1 })
+			end
+		end
 		Net.Event("Fx"):FireAllClients("ChestOpen", m)
 		task.delay(1.5, function()
 			m:Destroy()
@@ -3431,7 +3704,7 @@ local function buildPortals()
 	local back = ctx.WorldBuilder.Prompt(anchor, "Zurück ins Camp", "Rückkehrportal", 1)
 	back.Triggered:Connect(function(player)
 		if isParticipant(player) and ctx.PlayerState.IsActive(player) then
-			Expedition.ReturnPlayer(player, true)
+			Expedition.ReturnPlayer(player, true, true)
 		end
 	end)
 
@@ -3446,7 +3719,7 @@ local function buildPortals()
 	ap.Enabled = false
 	ap.Triggered:Connect(function(player)
 		if bossDead and isParticipant(player) and ctx.PlayerState.IsActive(player) then
-			Expedition.ReturnPlayer(player, true)
+			Expedition.ReturnPlayer(player, true, true)
 		end
 	end)
 end
@@ -3549,6 +3822,7 @@ local function endRun(reason: string?)
 	disconnected = {}
 	runStart = 0
 	ReplicatedStorage:SetAttribute("RunStart", 0)
+	ReplicatedStorage:SetAttribute("RiftDanger", 0)
 	if reason then
 		ctx.PlayerState.NotifyAll(Players:GetPlayers(), reason, "info")
 	end
@@ -3566,9 +3840,78 @@ local function joinRun(player: Player)
 	s.inRun = true
 	s.backpack = {}
 	s.protectedLoot = {}
+	s.usedRecall = false
+	s.recalling = false
 	ctx.PlayerState.ResetVitals(player)
 	teleport(player, ctx.WorldBuilder.Points.ZoneArrival)
 	ctx.PlayerState.Sync(player)
+end
+
+-- Rift-Gefahr: je länger das Team bleibt, desto mehr Gegner tauchen auf.
+local function dangerLoop(myStart: number)
+	local cfg = Config.RiftDanger
+	local level = 0
+	local nextWave = 0
+	while phase == "Running" and runStart == myStart do
+		task.wait(1)
+		if phase ~= "Running" or runStart ~= myStart then
+			break
+		end
+		local delay = cfg.StartAfter
+		for _, p in participants do
+			local profile = ctx.DataService.Get(p)
+			if profile and profile.upgrades.Watchtower then
+				delay += cfg.TowerDelay
+				break
+			end
+		end
+		local t = workspace:GetServerTimeNow() - myStart
+		local newLevel = if t < delay then 0 else math.min(cfg.MaxLevel, math.floor((t - delay) / cfg.LevelEvery) + 1)
+		if newLevel ~= level then
+			level = newLevel
+			ReplicatedStorage:SetAttribute("RiftDanger", level)
+			if level > 0 then
+				ctx.PlayerState.NotifyAll(participants, "Die Rift-Gefahr steigt: Stufe " .. level .. ". Mehr Gegner strömen herbei!", "bad")
+			end
+		end
+		if level > 0 and os.clock() >= nextWave then
+			nextWave = os.clock() + cfg.WaveEvery
+			local active = {}
+			for _, p in participants do
+				local root = ctx.PlayerState.GetRoot(p)
+				if ctx.PlayerState.IsActive(p) and root and (root.Position - ctx.WorldBuilder.Points.ArenaCenter).Magnitude > 60 then
+					table.insert(active, p)
+				end
+			end
+			if #active > 0 then
+				local target = active[math.random(1, #active)]
+				local center = (ctx.PlayerState.GetRoot(target) :: BasePart).Position
+				local diff = Config.Difficulties[difficulty]
+				local count = math.min(6, level + #participants - 1)
+				local kinds = { "Riftling", "Rift_Crawler" }
+				if level >= 3 then
+					table.insert(kinds, "Rootstalker")
+				end
+				for _ = 1, count do
+					for _try = 1, 5 do
+						local a = math.random() * math.pi * 2
+						local pos = center + Vector3.new(math.cos(a) * 26, 0, math.sin(a) * 26)
+						local ground = ctx.Entities.GroundAt(pos)
+						if math.abs(ground.Y - center.Y) < 6 then
+							ctx.Entities.SpawnEnemy(kinds[math.random(1, #kinds)], ground, {
+								tag = TAG,
+								hpMult = diff.hp * (1 + 0.1 * level),
+								dmgMult = diff.damage,
+								lootMult = 0.5,
+							})
+							break
+						end
+					end
+				end
+				Net.Event("Fx"):FireAllClients("RiftWave", center)
+			end
+		end
+	end
 end
 
 local function launch()
@@ -3594,6 +3937,8 @@ local function launch()
 	folder.Parent = workspace
 	runFolder = folder
 	populate(#ready)
+	ReplicatedStorage:SetAttribute("RiftDanger", 0)
+	task.spawn(dangerLoop, runStart)
 	for _, p in ready do
 		joinRun(p)
 	end
@@ -3605,8 +3950,8 @@ local function launch()
 	ctx.PlayerState.SyncAll()
 end
 
--- Spieler verlässt die Expedition. secure = Beute sichern.
-function Expedition.ReturnPlayer(player: Player, secure: boolean)
+-- Spieler verlässt die Expedition. secure = Beute sichern, survived = regulär zurückgekehrt.
+function Expedition.ReturnPlayer(player: Player, secure: boolean, survived: boolean?)
 	local s = ctx.PlayerState.Get(player)
 	if not s then
 		return
@@ -3614,6 +3959,10 @@ function Expedition.ReturnPlayer(player: Player, secure: boolean)
 	if secure then
 		ctx.PlayerState.SecureLoot(player)
 	end
+	if survived then
+		ctx.Progress.Milestone(player, "SurviveRun")
+	end
+	s.recalling = false
 	removeFrom(participants, player)
 	local prompt = revivePrompts[player]
 	if prompt then
@@ -3985,30 +4334,104 @@ local handlers: { [string]: (Player, any, any) -> () } = {}
 handlers.Smelt = function(player, amount)
 	local n = if type(amount) == "number" then math.clamp(math.floor(amount), 1, 999) else 1
 	local profile = ctx.DataService.Get(player)
+	local big = profile.upgrades.BigFurnace == true
+	local input = if big then Config.Smelt.bigInput else Config.Smelt.inputAmount
+	local output = if big then Config.Smelt.bigOutput else 1
 	local have = profile.stash[Config.Smelt.input] or 0
-	n = math.min(n, math.floor(have / Config.Smelt.inputAmount))
+	n = math.min(n, math.floor(have / input))
 	if n <= 0 then
-		ctx.PlayerState.Notify(player, "Du brauchst " .. Config.Smelt.inputAmount .. " Kupfererz pro Barren.", "bad")
+		ctx.PlayerState.Notify(player, "Du brauchst " .. input .. " Kupfererz pro Schmelzvorgang.", "bad")
 		return
 	end
-	ctx.DataService.Take(player, { [Config.Smelt.input] = n * Config.Smelt.inputAmount })
-	ctx.DataService.Give(player, { [Config.Smelt.output] = n })
-	ctx.PlayerState.Notify(player, n .. " Kupferbarren geschmolzen.", "good")
+	ctx.DataService.Take(player, { [Config.Smelt.input] = n * input })
+	ctx.DataService.Give(player, { [Config.Smelt.output] = n * output })
+	ctx.PlayerState.Notify(player, (n * output) .. " Kupferbarren geschmolzen.", "good")
+	ctx.Progress.Milestone(player, "SmeltCopper")
 	Net.Event("Fx"):FireAllClients("Smelt", player)
 end
 
-handlers.Research = function(player, form)
-	local def = type(form) == "string" and Config.Forms[form]
+handlers.Research = function(player, id)
 	local profile = ctx.DataService.Get(player)
-	if not def or not def.research or profile.unlocked[form] then
+	if type(id) ~= "string" or profile.unlocked[id] then
 		return
 	end
-	if not ctx.DataService.Take(player, def.research) then
-		ctx.PlayerState.Notify(player, "Nicht genug Materialien für die Forschung.", "bad")
+	local form = Config.Forms[id]
+	local extra = Config.Research[id]
+	local cost = if form then form.research elseif extra then extra.cost else nil
+	if not cost then
 		return
 	end
-	profile.unlocked[form] = true
-	ctx.PlayerState.Notify(player, "Neue Waffenform erforscht: " .. def.name, "milestone")
+	if not ctx.DataService.Take(player, cost) then
+		ctx.PlayerState.Notify(player, "Dir fehlen Bauplan oder Materialien.", "bad")
+		return
+	end
+	profile.unlocked[id] = true
+	ctx.PlayerState.Notify(
+		player,
+		"Erforscht: " .. (if form then form.name else extra.name) .. (if extra then " – jetzt an der Werkbank herstellbar." else ""),
+		"milestone"
+	)
+end
+
+handlers.CraftGear = function(player, id)
+	local def = type(id) == "string" and Config.Gear[id]
+	local profile = ctx.DataService.Get(player)
+	if not def then
+		return
+	end
+	if not def.item and profile.tools[id] then
+		ctx.PlayerState.Notify(player, "Du besitzt " .. def.name .. " bereits.", "info")
+		return
+	end
+	if def.requires and not profile.tools[def.requires] then
+		ctx.PlayerState.Notify(player, "Benötigt zuerst: " .. Config.Gear[def.requires].name, "bad")
+		return
+	end
+	if def.research and not profile.unlocked[def.research] then
+		ctx.PlayerState.Notify(player, "Erst den Bauplan am Forschungstisch entschlüsseln.", "bad")
+		return
+	end
+	if not ctx.DataService.Take(player, def.cost) then
+		ctx.PlayerState.Notify(player, "Nicht genug Materialien.", "bad")
+		return
+	end
+	if def.item then
+		local n = def.amount or 1
+		if def.item == "Potion" and profile.upgrades.HerbGarden then
+			n *= 2
+		end
+		ctx.DataService.Give(player, { [def.item] = n })
+		ctx.PlayerState.Notify(player, "Hergestellt: " .. n .. "× " .. Config.Items[def.item].name, "good")
+		return
+	end
+	profile.tools[id] = true
+	ctx.PlayerState.Notify(player, "Hergestellt: " .. def.name, "milestone")
+	if id == "StonePickaxe" or id == "CopperPickaxe" or id == "Locator" then
+		ctx.Progress.Milestone(player, id)
+	end
+	if id == "Locator" then
+		ctx.PlayerState.Notify(player, "Das Ortungsgerät pulsiert: Jenseits von Verdant Scar liegen die Glutadern ... (nächstes Gebiet)", "boss")
+	end
+end
+
+handlers.BuildUpgrade = function(player, id)
+	local def = type(id) == "string" and Config.Upgrades[id]
+	local profile = ctx.DataService.Get(player)
+	if not def or profile.upgrades[id] then
+		return
+	end
+	if def.requires and not profile.milestones[def.requires] then
+		ctx.PlayerState.Notify(player, "Überlebe zuerst eine Expedition.", "bad")
+		return
+	end
+	if not ctx.DataService.Take(player, def.cost) then
+		ctx.PlayerState.Notify(player, "Nicht genug Materialien.", "bad")
+		return
+	end
+	profile.upgrades[id] = true
+	ctx.PlayerState.Notify(player, "Camp-Ausbau fertig: " .. def.name, "milestone")
+	ctx.Progress.Milestone(player, "BaseUpgrade")
+	ctx.Gear.RefreshCamp()
 end
 
 handlers.Equip = function(player, id)
@@ -4184,6 +4607,295 @@ return Forge
         </Item>
         <Item class="ModuleScript" referent="15">
           <Properties>
+            <string name="Name">Gear</string>
+            <string name="Source"><![CDATA[--!nonstrict
+-- Expeditionsausrüstung: Kupferbogen, Heiltränke, Rückruf-Signalgeber,
+-- Seilwerfer-Ankerpunkte und die sichtbaren Camp-Ausbauten.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local Net = require(ReplicatedStorage.Shared.Net)
+
+local Gear = {}
+local ctx: any
+
+local FxEvent = Net.Event("Fx")
+
+--------------------------------------------------------------------------------
+-- Aktionen (über das Action-Remote)
+--------------------------------------------------------------------------------
+local function shootBow(player: Player, dir: any)
+	local s = ctx.PlayerState.Get(player)
+	local profile = ctx.DataService.Get(player)
+	local root = ctx.PlayerState.GetRoot(player)
+	if not s or not profile or not root then
+		return
+	end
+	if not profile.tools.CopperBow then
+		ctx.PlayerState.Notify(player, "Du hast keinen Kupferbogen. Bauplan finden und an der Werkbank herstellen.", "bad")
+		return
+	end
+	if typeof(dir) ~= "Vector3" or dir.Magnitude < 0.1 or dir.Magnitude ~= dir.Magnitude then
+		return
+	end
+	local now = os.clock()
+	if now - s.lastBow < Config.Bow.Cooldown * 0.9 then
+		return
+	end
+	if (profile.stash.Arrow or 0) < 1 then
+		ctx.PlayerState.Notify(player, "Keine Pfeile! An der Werkbank herstellen.", "bad")
+		return
+	end
+	if not ctx.PlayerState.UseStamina(player, Config.Bow.Stamina) then
+		return
+	end
+	s.lastBow = now
+	ctx.DataService.Take(player, { Arrow = 1 })
+	local origin = root.Position + Vector3.new(0, 1.5, 0)
+	local unit = dir.Unit
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local filter = { workspace:FindFirstChild("Telegraphs") }
+	for _, p in Players:GetPlayers() do
+		if p.Character then
+			table.insert(filter, p.Character)
+		end
+	end
+	params.FilterDescendantsInstances = filter
+	local hit = workspace:Raycast(origin, unit * Config.Bow.Range, params)
+	local finish = if hit then hit.Position else origin + unit * Config.Bow.Range
+	FxEvent:FireAllClients("Arrow", player, origin, finish)
+	if hit then
+		local e = ctx.Entities.FromPart(hit.Instance)
+		if e then
+			local dmg = Config.Bow.Damage * (if e.kind == "Lantern_Wraith" then 1.6 else 1)
+			ctx.Entities.Damage(e, dmg, { player = player, color = Color3.fromRGB(230, 210, 170) })
+		end
+	end
+	ctx.PlayerState.Sync(player)
+end
+
+local function drinkPotion(player: Player)
+	local s = ctx.PlayerState.Get(player)
+	local profile = ctx.DataService.Get(player)
+	if not s or not profile then
+		return
+	end
+	local now = os.clock()
+	if now - s.lastPotion < Config.Potion.Cooldown then
+		return
+	end
+	if s.hp >= Config.Player.MaxHP then
+		ctx.PlayerState.Notify(player, "Du bist schon voll geheilt.", "info")
+		return
+	end
+	if not ctx.DataService.Take(player, { Potion = 1 }) then
+		ctx.PlayerState.Notify(player, "Keine Heiltränke. Braue sie an der Werkbank aus Heilkräutern.", "bad")
+		return
+	end
+	s.lastPotion = now
+	ctx.PlayerState.Heal(player, Config.Potion.Heal)
+	FxEvent:FireAllClients("Heal", player)
+	ctx.PlayerState.Sync(player)
+end
+
+local function recall(player: Player)
+	local s = ctx.PlayerState.Get(player)
+	local profile = ctx.DataService.Get(player)
+	if not s or not profile or not s.inRun or s.recalling then
+		return
+	end
+	if s.usedRecall then
+		ctx.PlayerState.Notify(player, "Der Signalgeber wurde in dieser Expedition schon benutzt.", "bad")
+		return
+	end
+	if (profile.stash.RecallBeacon or 0) < 1 then
+		ctx.PlayerState.Notify(player, "Kein Rückruf-Signalgeber. An der Werkbank herstellen.", "bad")
+		return
+	end
+	s.recalling = true
+	ctx.PlayerState.Notify(player, "Rückruf in " .. Config.Recall.Channel .. " s … nicht getroffen werden!", "info")
+	FxEvent:FireAllClients("Recall", player, Config.Recall.Channel)
+	task.delay(Config.Recall.Channel, function()
+		local cur = ctx.PlayerState.Get(player)
+		if cur ~= s or not s.recalling or not s.inRun or s.downed then
+			return
+		end
+		s.recalling = false
+		if not ctx.DataService.Take(player, { RecallBeacon = 1 }) then
+			return
+		end
+		s.usedRecall = true
+		ctx.PlayerState.Notify(player, "Notflucht geglückt!", "good")
+		ctx.Expedition.ReturnPlayer(player, true, true)
+	end)
+end
+
+-- Liefert true, wenn die Aktion hier behandelt wurde.
+function Gear.Action(player: Player, action: string, arg: any): boolean
+	if action == "Bow" then
+		shootBow(player, arg)
+	elseif action == "Potion" then
+		drinkPotion(player)
+	elseif action == "Recall" then
+		recall(player)
+	else
+		return false
+	end
+	return true
+end
+
+--------------------------------------------------------------------------------
+-- Seilwerfer
+--------------------------------------------------------------------------------
+function Gear.SetupGrapple(anchor: BasePart, destination: Vector3, reachesCave: boolean)
+	local prompt = ctx.WorldBuilder.Prompt(anchor, "Seilwerfer benutzen", if reachesCave then "Abgrund → Höhle" else "Abgrund → zurück", 0.3)
+	prompt.MaxActivationDistance = 14
+	prompt.Triggered:Connect(function(player)
+		local profile = ctx.DataService.Get(player)
+		if not profile or not ctx.PlayerState.IsActive(player) then
+			return
+		end
+		if not profile.tools.Grapple then
+			ctx.PlayerState.Notify(player, "Hier brauchst du einen Seilwerfer. Den Bauplan findest du in Truhen.", "bad")
+			return
+		end
+		local char = player.Character
+		local root = ctx.PlayerState.GetRoot(player)
+		if not char or not root then
+			return
+		end
+		FxEvent:FireAllClients("Rope", player, root.Position, destination + Vector3.new(0, 3, 0))
+		-- kurze Flugbahn in Schritten
+		local from = root.Position
+		local to = destination + Vector3.new(0, 3.5, 0)
+		local flat = Vector3.new(to.X - from.X, 0, to.Z - from.Z)
+		local rot = if flat.Magnitude > 0.1 then CFrame.lookAt(Vector3.zero, flat).Rotation else CFrame.identity
+		for i = 1, 8 do
+			local t = i / 8
+			local pos = from:Lerp(to, t) + Vector3.new(0, math.sin(t * math.pi) * 6, 0)
+			char:PivotTo(CFrame.new(pos) * rot)
+			task.wait(0.05)
+		end
+		root.AssemblyLinearVelocity = Vector3.zero
+		if reachesCave then
+			ctx.Progress.Milestone(player, "ReachCave")
+		end
+	end)
+end
+
+--------------------------------------------------------------------------------
+-- Camp-Ausbauten (sichtbar, sobald ein Spieler auf dem Server sie besitzt)
+--------------------------------------------------------------------------------
+local upgradeFolder: Folder? = nil
+local upgradeModels: { [string]: Model } = {}
+
+local function part(model: Model, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?): Part
+	local p = Instance.new("Part")
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.Anchored = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Parent = model
+	return p
+end
+
+local function buildUpgradeModels()
+	local C = ctx.AssetLoader.Colors
+	-- Großer Schmelzofen
+	local furnace = ctx.AssetLoader.Model("Smelting_Furnace", 10)
+	furnace:PivotTo(CFrame.new(-54, 0, 28) * CFrame.Angles(0, math.rad(60), 0))
+	local pipe = part(furnace, Vector3.new(1.2, 1.2, 12), CFrame.new(-48, 7.5, 22) * CFrame.Angles(0, math.rad(45), 0), C.IronDark, Enum.Material.Metal)
+	pipe.Name = "Pipe"
+	furnace.Name = "BigFurnace"
+	upgradeModels.BigFurnace = furnace
+
+	-- Kräuterbeet
+	local garden = Instance.new("Model")
+	garden.Name = "HerbGarden"
+	local base = Vector3.new(34, 0, -24)
+	part(garden, Vector3.new(12, 0.8, 7), CFrame.new(base + Vector3.new(0, 0.4, 0)), Color3.fromRGB(90, 62, 40), Enum.Material.Ground)
+	for x = -4, 4, 2 do
+		for z = -2, 2, 2 do
+			local h = 0.8 + ((x + z) % 3) * 0.3
+			part(
+				garden,
+				Vector3.new(0.8, h, 0.8),
+				CFrame.new(base + Vector3.new(x, 0.8 + h / 2, z)) * CFrame.Angles(0, math.rad(x * 20), 0),
+				Color3.fromRGB(80, 190, 100),
+				Enum.Material.Grass
+			)
+		end
+	end
+	for _, dx in { -6.2, 6.2 } do
+		part(garden, Vector3.new(0.4, 1.2, 7.4), CFrame.new(base + Vector3.new(dx, 0.6, 0)), C.Wood, Enum.Material.Wood)
+	end
+	upgradeModels.HerbGarden = garden
+
+	-- Rift-Wachturm
+	local tower = Instance.new("Model")
+	tower.Name = "Watchtower"
+	local tb = Vector3.new(-22, 0, -46)
+	for _, o in { Vector3.new(-2.5, 0, -2.5), Vector3.new(2.5, 0, -2.5), Vector3.new(-2.5, 0, 2.5), Vector3.new(2.5, 0, 2.5) } do
+		part(tower, Vector3.new(0.9, 16, 0.9), CFrame.new(tb + o + Vector3.new(0, 8, 0)), C.WoodDark, Enum.Material.Wood)
+	end
+	part(tower, Vector3.new(7, 0.6, 7), CFrame.new(tb + Vector3.new(0, 16, 0)), C.Plank, Enum.Material.WoodPlanks)
+	part(tower, Vector3.new(7, 3.5, 0.4), CFrame.new(tb + Vector3.new(0, 17.8, 3.3)), C.Wood, Enum.Material.WoodPlanks)
+	part(tower, Vector3.new(7, 3.5, 0.4), CFrame.new(tb + Vector3.new(0, 17.8, -3.3)), C.Wood, Enum.Material.WoodPlanks)
+	local beacon = part(tower, Vector3.new(1.4, 2.4, 1.4), CFrame.new(tb + Vector3.new(0, 18, 0)), C.Rift, Enum.Material.Neon)
+	local l = Instance.new("PointLight")
+	l.Color = C.Rift
+	l.Range = 30
+	l.Brightness = 2
+	l.Parent = beacon
+	upgradeModels.Watchtower = tower
+end
+
+function Gear.RefreshCamp()
+	if not upgradeFolder then
+		return
+	end
+	local owned: { [string]: boolean } = {}
+	for _, p in Players:GetPlayers() do
+		local profile = ctx.DataService.Get(p)
+		if profile then
+			for id in profile.upgrades do
+				owned[id] = true
+			end
+		end
+	end
+	for id, model in upgradeModels do
+		model.Parent = if owned[id] then upgradeFolder else nil
+	end
+end
+
+function Gear.Init(context)
+	ctx = context
+end
+
+function Gear.Start()
+	local folder = Instance.new("Folder")
+	folder.Name = "CampUpgrades"
+	folder.Parent = workspace
+	upgradeFolder = folder
+	buildUpgradeModels()
+	Players.PlayerRemoving:Connect(function()
+		task.defer(Gear.RefreshCamp)
+	end)
+	Gear.RefreshCamp()
+end
+
+return Gear
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="16">
+          <Properties>
             <string name="Name">PlayerState</string>
             <string name="Source"><![CDATA[--!nonstrict
 -- Laufzeitzustand der Spieler: Leben, Ausdauer, Elementladung, Rucksack,
@@ -4212,6 +4924,10 @@ export type State = {
 	inRun: boolean,
 	backpack: { [string]: number },
 	protectedLoot: { [string]: number },
+	lastPotion: number,
+	lastBow: number,
+	usedRecall: boolean,
+	recalling: boolean,
 }
 
 local PlayerState = {}
@@ -4240,6 +4956,10 @@ local function newState(): State
 		inRun = false,
 		backpack = {},
 		protectedLoot = {},
+		lastPotion = 0,
+		lastBow = 0,
+		usedRecall = false,
+		recalling = false,
 	}
 end
 
@@ -4356,6 +5076,9 @@ function PlayerState.Sync(player: Player)
 			weapons = profile.weapons,
 			equipped = profile.equipped,
 			unlocked = profile.unlocked,
+			tools = profile.tools,
+			upgrades = profile.upgrades,
+			usedRecall = s.usedRecall,
 			blueprints = profile.blueprints,
 			milestones = profile.milestones,
 			quests = profile.quests,
@@ -4420,6 +5143,14 @@ function PlayerState.Damage(player: Player, amount: number, _source: string?): b
 		s.perfectDodgeUntil = now + 2
 		Net.Event("Fx"):FireAllClients("PerfectDodge", player)
 		return false
+	end
+	local profile = ctx.DataService.Get(player)
+	if profile and profile.tools.LightArmor then
+		amount *= 1 - Config.ArmorReduction
+	end
+	if s.recalling then
+		s.recalling = false
+		PlayerState.Notify(player, "Rückruf unterbrochen!", "bad")
 	end
 	s.hp = math.max(0, s.hp - amount)
 	local hum = PlayerState.GetHumanoid(player)
@@ -4625,6 +5356,7 @@ function PlayerState.OnProfileLoaded(player: Player)
 		task.spawn(onCharacter, player, player.Character)
 	end
 	ctx.Progress.OnLoaded(player)
+	ctx.Gear.RefreshCamp()
 	PlayerState.Sync(player)
 end
 
@@ -4663,7 +5395,7 @@ return PlayerState
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="16">
+        <Item class="ModuleScript" referent="17">
           <Properties>
             <string name="Name">Progress</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -4741,7 +5473,7 @@ return Progress
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="17">
+        <Item class="ModuleScript" referent="18">
           <Properties>
             <string name="Name">WorldBuilder</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -4783,9 +5515,19 @@ WorldBuilder.Spawns = {
 	Outpost = {
 		enemies = { { "Riftling", V(-10, 0, -650) }, { "Riftling", V(12, 0, -655) }, { "Riftling", V(0, 0, -668) }, { "Riftling", V(-22, 0, -662) } },
 		enemyCount = 3,
-		nodes = { V(25, 0, -600), V(-35, 0, -625), V(30, 0, -640), V(-32, 0, -590), V(12, 0, -662) },
-		nodeKinds = { "Copper_Deposit", "Stone_Deposit", "Timber_Pile" },
-		nodeCount = 3,
+		nodes = {
+			V(25, 0, -600),
+			V(-35, 0, -625),
+			V(30, 0, -640),
+			V(-32, 0, -590),
+			V(12, 0, -662),
+			V(-60, 0, -600),
+			V(60, 0, -615),
+			V(-55, 0, -655),
+			V(58, 0, -660),
+		},
+		nodeKinds = { "Stone_Deposit", "Timber_Pile", "Timber_Pile", "Fiber_Bush", "Fiber_Bush", "Herb_Patch", "Herb_Patch", "Copper_Deposit" },
+		nodeCount = 7,
 	},
 	Ruins = {
 		enemies = {
@@ -4800,8 +5542,8 @@ WorldBuilder.Spawns = {
 		},
 		enemyCount = 6,
 		nodes = { V(-55, 0, -700), V(50, 0, -705), V(-62, 0, -760), V(55, 0, -780), V(-10, 0, -742), V(15, 0, -815), V(-40, 0, -812) },
-		nodeKinds = { "Copper_Deposit", "Stone_Deposit", "Timber_Pile", "Rift_Deposit" },
-		nodeCount = 4,
+		nodeKinds = { "Copper_Deposit", "Stone_Deposit", "Timber_Pile", "Rift_Deposit", "Herb_Patch", "Fiber_Bush" },
+		nodeCount = 5,
 		chests = { V(-58, 0, -730), V(45, 0, -725), V(-22, 0, -800), V(52, 0, -810) },
 		chestCount = 2,
 		mimicChance = 0.25,
@@ -4810,7 +5552,7 @@ WorldBuilder.Spawns = {
 		enemies = { { "Riftling", V(-40, 0, -870) }, { "Riftling", V(-30, 0, -930) }, { "Rootstalker", V(-45, 0, -955) }, { "Riftling", V(-26, 0, -890) } },
 		enemyCount = 3,
 		nodes = { V(-50, 0, -850), V(-26, 0, -870), V(-52, 0, -895), V(-22, 0, -912), V(-50, 0, -935), V(-24, 0, -955), V(-50, 0, -975) },
-		nodeKinds = { "Copper_Deposit", "Copper_Deposit", "Stone_Deposit", "Copper_Deposit", "Stone_Deposit", "Timber_Pile" },
+		nodeKinds = { "Copper_Deposit", "Copper_Deposit", "Stone_Deposit", "Copper_Deposit", "Stone_Deposit", "Hard_Copper_Deposit" },
 		nodeCount = 5,
 	},
 	RiskyMine = {
@@ -4825,11 +5567,22 @@ WorldBuilder.Spawns = {
 		enemyCount = 5,
 		hpMult = 1.25,
 		nodes = { V(25, 0, -850), V(52, 0, -872), V(22, 0, -932), V(52, 0, -902), V(50, 0, -968) },
-		nodeKinds = { "Rift_Deposit", "Rift_Deposit", "Copper_Deposit" },
+		nodeKinds = { "Rift_Deposit", "Rift_Deposit", "Copper_Deposit", "Hard_Copper_Deposit" },
 		nodeCount = 3,
 		chests = { V(50, 0, -855), V(24, 0, -975), V(52, 0, -932) },
 		chestCount = 2,
 		mimicCount = 1,
+		rare = true,
+	},
+	-- Versteckter Höhlenbereich hinter dem Abgrund (nur mit Seilwerfer)
+	Cave = {
+		enemies = { { "Rift_Crawler", V(-110, 0, -915) }, { "Rift_Crawler", V(-105, 0, -880) }, { "Rootstalker", V(-118, 0, -898) } },
+		enemyCount = 2,
+		nodes = { V(-120, 0, -922), V(-100, 0, -922), V(-122, 0, -878), V(-104, 0, -876), V(-114, 0, -900) },
+		nodeKinds = { "Hard_Copper_Deposit", "Hard_Copper_Deposit", "Rift_Deposit", "Herb_Patch" },
+		nodeCount = 4,
+		chests = { V(-122, 0, -900) },
+		chestCount = 1,
 		rare = true,
 	},
 }
@@ -4965,7 +5718,8 @@ local function buildCamp()
 	spawn.Color = Color3.fromRGB(70, 78, 88)
 	spawn.Parent = world
 
-	station("Forge", "Workbench", V(-26, 0, -6), 90, "Schmiede", "Forge")
+	station("Forge", "Anvil_Forge", V(-26, 0, -6), 90, "Schmiede", "Forge")
+	station("Workshop", "Workbench", V(24, 0, 18), -90, "Werkbank", "Workshop")
 	station("Furnace", "Smelting_Furnace", V(-42, 0, 16), 60, "Schmelzofen", "Furnace")
 	station("Research", "Research_Table", V(26, 0, -6), -90, "Forschungstisch", "Research")
 	station("Chest", "Storage_Chest", V(42, 0, 16), -60, "Lagerkiste", "Chest")
@@ -5065,6 +5819,9 @@ local function buildZone()
 	place("Lantern", outpost + V(-8, 0, 30))
 	place("Lantern", outpost + V(8, 0, 30))
 	sign(outpost + V(6, 0, 34), "Außenposten", Color3.fromRGB(40, 25, 15))
+	-- Waldgebiet rund um den Außenposten
+	scatter("Tree", outpost, 115, 34, 41, 44)
+	scatter("Rock", outpost, 110, 8, 42, 44)
 
 	-- 2. Überwucherte Ruinen
 	local rng = Random.new(77)
@@ -5110,6 +5867,33 @@ local function buildZone()
 		mineGate(-60, -15, z)
 		mineGate(15, 60, z)
 	end
+	-- Höhlenbereich hinter dem Abgrund (links, nur mit Seilwerfer)
+	fill(V(-110, 10, -900), V(36, 20, 60), Enum.Material.Air)
+	fill(V(-110, -0.5, -900), V(36, 1, 60), Enum.Material.Slate)
+	fill(V(-76, 8, -895), V(32, 16, 20), Enum.Material.Air)
+	fill(V(-77, -24, -895), V(22, 48, 22), Enum.Material.Air)
+	for i = 0, 5 do
+		local c = part(
+			V(1, 4, 1),
+			CFrame.new(V(-110 + math.cos(i) * 15, 2, -900 + math.sin(i * 1.7) * 25)) * CFrame.Angles(math.rad(12), i, math.rad(-8)),
+			Color3.fromRGB(63, 224, 197),
+			Enum.Material.Neon
+		)
+		local l = Instance.new("PointLight")
+		l.Color = c.Color
+		l.Range = 14
+		l.Parent = c
+	end
+	sign(V(-58, 0, -902), "Abgrund – Seilwerfer!", Color3.fromRGB(140, 30, 20))
+	local function grappleAnchor(pos: Vector3, dest: Vector3, cave: boolean)
+		part(V(0.8, 6, 0.8), CFrame.new(pos + V(0, 3, 0)), Color3.fromRGB(80, 52, 34), Enum.Material.Wood)
+		local hook = part(V(1.4, 1.4, 1.4), CFrame.new(pos + V(0, 6.4, 0)), Color3.fromRGB(63, 224, 197), Enum.Material.Neon)
+		hook.Name = "GrappleAnchor"
+		ctx.Gear.SetupGrapple(hook, dest, cave)
+	end
+	grappleAnchor(V(-63, 0, -895), V(-97, 0, -895), true)
+	grappleAnchor(V(-90, 0, -889), V(-56, 0, -895), false)
+
 	-- Versteck hinter dem Frostsiegel
 	fill(V(104, 9, -910), V(30, 18, 34), Enum.Material.Air)
 	fill(V(76, 8, -910), V(30, 16, 14), Enum.Material.Air)
@@ -5203,15 +5987,15 @@ return WorldBuilder
       </Item>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="18">
+  <Item class="StarterPlayer" referent="19">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterCharacterScripts" referent="19">
+    <Item class="StarterCharacterScripts" referent="20">
       <Properties>
         <string name="Name">StarterCharacterScripts</string>
       </Properties>
-      <Item class="Script" referent="20">
+      <Item class="Script" referent="21">
         <Properties>
           <string name="Name">Health</string>
           <token name="RunContext">0</token>
@@ -5221,15 +6005,15 @@ return WorldBuilder
         </Properties>
       </Item>
     </Item>
-    <Item class="StarterPlayerScripts" referent="21">
+    <Item class="StarterPlayerScripts" referent="22">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="Folder" referent="22">
+      <Item class="Folder" referent="23">
         <Properties>
           <string name="Name">Client</string>
         </Properties>
-        <Item class="ModuleScript" referent="23">
+        <Item class="ModuleScript" referent="24">
           <Properties>
             <string name="Name">Fx</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -5651,6 +6435,70 @@ end
 
 handlers.Smelt = function() end
 
+handlers.Arrow = function(p: Player, from: Vector3, to: Vector3)
+	local len = (to - from).Magnitude
+	if len < 0.5 then
+		return
+	end
+	local arrow = part(Vector3.new(0.15, 0.15, 2.2), CFrame.lookAt(from, to), Color3.fromRGB(230, 210, 170))
+	arrow.Material = Enum.Material.SmoothPlastic
+	local t = math.min(0.4, len / 160)
+	TweenService:Create(arrow, TweenInfo.new(t, Enum.EasingStyle.Linear), { CFrame = CFrame.lookAt(to, to + (to - from).Unit) }):Play()
+	Debris:AddItem(arrow, t + 0.05)
+	local trail = part(Vector3.new(0.05, 0.05, len), CFrame.lookAt((from + to) / 2, to), Color3.fromRGB(255, 255, 255))
+	trail.Transparency = 0.6
+	fade(trail, 0.25)
+	local _ = p
+end
+
+handlers.Heal = function(p: Player)
+	local char = p.Character
+	local r = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if r then
+		burst(r.Position, Color3.fromRGB(110, 230, 130), 10, 4)
+		floatText(r.Position + Vector3.new(0, 4, 0), "+ HEILUNG", Color3.fromRGB(110, 230, 130), 18)
+	end
+	if p == player then
+		flash(Color3.fromRGB(80, 220, 110))
+	end
+end
+
+handlers.Recall = function(p: Player, duration: number)
+	local char = p.Character
+	local r = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not r then
+		return
+	end
+	local beam = part(
+		Vector3.new(0.2, 3, 3),
+		CFrame.new(r.Position - Vector3.new(0, 2.8, 0)) * CFrame.Angles(0, 0, math.rad(90)),
+		Color3.fromRGB(120, 230, 255),
+		Enum.PartType.Cylinder
+	)
+	beam.Transparency = 0.3
+	TweenService:Create(
+		beam,
+		TweenInfo.new(duration, Enum.EasingStyle.Linear),
+		{ Size = Vector3.new(40, 3, 3), CFrame = CFrame.new(r.Position + Vector3.new(0, 17, 0)) * CFrame.Angles(0, 0, math.rad(90)) }
+	):Play()
+	Debris:AddItem(beam, duration + 0.1)
+end
+
+handlers.Rope = function(p: Player, from: Vector3, to: Vector3)
+	local len = (to - from).Magnitude
+	local rope = part(Vector3.new(0.2, 0.2, len), CFrame.lookAt((from + to) / 2, to), Color3.fromRGB(170, 140, 90))
+	rope.Material = Enum.Material.Fabric
+	fade(rope, 0.6)
+	local _ = p
+end
+
+handlers.RiftWave = function(pos: Vector3)
+	ring(pos - Vector3.new(0, 2.5, 0), 28, Config.Colors.Rift, 0.8)
+	if nearMe(pos, 50) then
+		flash(Config.Colors.Rift)
+	end
+end
+
 function Fx.Init(flashFn: (Color3) -> ())
 	flash = flashFn
 	Net.Event("Fx").OnClientEvent:Connect(function(kind: string, ...)
@@ -5668,7 +6516,7 @@ return Fx
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="24">
+        <Item class="ModuleScript" referent="25">
           <Properties>
             <string name="Name">Hud</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -5693,6 +6541,8 @@ local gui: ScreenGui
 local toastList: Frame
 local objective: TextLabel
 local weaponLabel: TextLabel
+local gearLabel: TextLabel
+local dangerLabel: TextLabel
 local chargeBack: Frame
 local bossFrame: Frame
 local bossFill: Frame
@@ -5789,6 +6639,24 @@ local function refresh()
 		end
 		runBag.Text = "Rucksack: <b>" .. total .. "</b> ungesichert" .. (if prot > 0 then "  ·  " .. prot .. " Bossbeute" else "")
 	end
+	local tools = s.tools or {}
+	local stash = s.stash or {}
+	local parts = {}
+	table.insert(parts, "Tränke [1]: <b>" .. (stash.Potion or 0) .. "</b>")
+	if tools.CopperBow then
+		table.insert(parts, "Bogen [T]: <b>" .. (stash.Arrow or 0) .. "</b> Pfeile")
+	end
+	local beacons = stash.RecallBeacon or 0
+	if beacons > 0 then
+		table.insert(parts, "Signalgeber [X]: <b>" .. beacons .. "</b>" .. (if s.usedRecall then " (benutzt)" else ""))
+	end
+	local toolNames = {}
+	for _, id in { "CopperPickaxe", "StonePickaxe", "Grapple", "LightArmor" } do
+		if tools[id] and not (id == "StonePickaxe" and tools.CopperPickaxe) then
+			table.insert(toolNames, Config.Gear[id].name)
+		end
+	end
+	gearLabel.Text = table.concat(parts, "  ·  ") .. (if #toolNames > 0 then "\n" .. table.concat(toolNames, " · ") else "\nKeine Spitzhacke – Werkbank!")
 end
 
 local function makeBars(parent: Instance)
@@ -5807,6 +6675,8 @@ local function makeBars(parent: Instance)
 	chargeBack = chBack
 	weaponLabel = UI.Label("", 13, UI.C.Text, UI.FontBold, { LayoutOrder = 4, Parent = box })
 	weaponLabel.TextStrokeTransparency = 0.6
+	gearLabel = UI.Label("", 12, UI.C.Dim, UI.Font, { LayoutOrder = 5, Parent = box })
+	gearLabel.TextStrokeTransparency = 0.6
 
 	RunService.RenderStepped:Connect(function()
 		local hp = player:GetAttribute("HP") or 100
@@ -5861,6 +6731,9 @@ local function makeBoss(parent: Instance)
 				local t = math.max(0, workspace:GetServerTimeNow() - start)
 				runTime.Text = string.format("Expedition  %02d:%02d", math.floor(t / 60), math.floor(t % 60))
 				runTime.TextColor3 = if t > 15 * 60 then UI.C.Stamina else UI.C.Text
+				local danger = ReplicatedStorage:GetAttribute("RiftDanger") or 0
+				dangerLabel.Text = if danger > 0 then "Rift-Gefahr: Stufe " .. danger .. " / " .. Config.RiftDanger.MaxLevel else "Rift-Gefahr: ruhig"
+				dangerLabel.TextColor3 = if danger >= 3 then UI.C.Danger elseif danger > 0 then UI.C.Stamina else UI.C.Dim
 			end
 		end
 	end)
@@ -5879,6 +6752,7 @@ local function makeRunInfo(parent: Instance)
 	}, { UI.Corner(8), UI.Pad(8), UI.List(3), UI.Stroke() })
 	runTime = UI.Label("Expedition 00:00", 15, UI.C.Text, UI.FontBlack, { Parent = runFrame })
 	runBag = UI.Label("", 13, UI.C.Dim, UI.Font, { Parent = runFrame })
+	dangerLabel = UI.Label("", 13, UI.C.Stamina, UI.FontBold, { Parent = runFrame })
 	UI.Label("Beute am <b>Rückkehrportal</b> sichern.", 12, UI.C.Dim, UI.Font, { Parent = runFrame })
 end
 
@@ -5968,6 +6842,15 @@ local function makeTouchButtons(parent: Instance, actions: Actions)
 	btn("SCHWER", UDim2.fromOffset(60, 150), 64, Color3.fromRGB(120, 70, 50), "Heavy")
 	btn("AUS-\nWEICHEN", UDim2.fromOffset(170, 50), 62, Color3.fromRGB(60, 90, 70), "Dodge")
 	local el = btn("ELEMENT", UDim2.fromOffset(80, 64), 60, Color3.fromRGB(30, 110, 100), "Ability")
+	local bowBtn = btn("BOGEN", UDim2.fromOffset(20, 90), 48, Color3.fromRGB(110, 90, 60), "Bow")
+	btn("TRANK", UDim2.fromOffset(95, 0), 44, Color3.fromRGB(150, 50, 70), "Potion")
+	local recallBtn = btn("RÜCK-\nRUF", UDim2.fromOffset(20, 20), 44, Color3.fromRGB(40, 120, 150), "Recall")
+	bowBtn.Visible = false
+	recallBtn.Visible = false
+	Store.Changed:Connect(function()
+		bowBtn.Visible = (Store.state.tools or {}).CopperBow == true
+		recallBtn.Visible = Store.state.inRun and ((Store.state.stash or {}).RecallBeacon or 0) > 0
+	end)
 	RunService.Heartbeat:Connect(function()
 		el.Visible = player:GetAttribute("HasElement") == true
 		el.BackgroundTransparency = if (player:GetAttribute("Charge") or 0) >= 100 then 0 else 0.6
@@ -6017,13 +6900,19 @@ function Hud.Init(actions: Actions)
 	if touch then
 		makeTouchButtons(gui, actions)
 	else
-		local hint = UI.Label("Linksklick: leicht · R / Rechtsklick: schwer · Q: ausweichen · F: Element · E: interagieren", 12, UI.C.Dim, UI.Font, {
-			AnchorPoint = Vector2.new(0.5, 1),
-			Position = UDim2.new(0.5, 0, 1, -8),
-			Size = UDim2.new(0.6, 0, 0, 0),
-			TextXAlignment = Enum.TextXAlignment.Center,
-			Parent = gui,
-		})
+		local hint = UI.Label(
+			"Linksklick: leicht · R / Rechtsklick: schwer · Q: ausweichen · F: Element · T: Bogen · 1: Trank · X: Rückruf · E: interagieren",
+			12,
+			UI.C.Dim,
+			UI.Font,
+			{
+				AnchorPoint = Vector2.new(0.5, 1),
+				Position = UDim2.new(0.5, 0, 1, -8),
+				Size = UDim2.new(0.6, 0, 0, 0),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Parent = gui,
+			}
+		)
 		hint.TextStrokeTransparency = 0.6
 	end
 
@@ -6036,7 +6925,7 @@ return Hud
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="25">
+        <Item class="ModuleScript" referent="26">
           <Properties>
             <string name="Name">Input</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -6193,7 +7082,81 @@ local function ability()
 	ActionEvent:FireServer("Ability")
 end
 
+local lastBow = 0
+local function bow()
+	if not canAct() then
+		return
+	end
+	local tools = Store.state.tools or {}
+	if not tools.CopperBow then
+		ActionEvent:FireServer("Bow", Vector3.new(0, 0, -1)) -- Server erklärt, was fehlt
+		return
+	end
+	local now = os.clock()
+	if now - lastBow < Config.Bow.Cooldown then
+		return
+	end
+	lastBow = now
+	local r = root()
+	if not r then
+		return
+	end
+	local dir: Vector3
+	if UserInputService.MouseEnabled and not UserInputService.TouchEnabled then
+		local hit = player:GetMouse().Hit.Position
+		dir = hit - (r.Position + Vector3.new(0, 1.5, 0))
+		local flat = Vector3.new(hit.X, r.Position.Y, hit.Z)
+		if (flat - r.Position).Magnitude > 0.5 then
+			r.CFrame = CFrame.lookAt(r.Position, flat)
+		end
+	else
+		aim(40)
+		dir = r.CFrame.LookVector
+		-- leicht nach unten/oben auf das Ziel zielen
+		local folder = workspace:FindFirstChild("Entities")
+		if folder then
+			local best, bestD = nil, 60
+			for _, m in folder:GetChildren() do
+				if m:IsA("Model") and m.PrimaryPart then
+					local off = m.PrimaryPart.Position - r.Position
+					if off.Magnitude < bestD and r.CFrame.LookVector:Dot(off.Unit) > 0.8 then
+						best, bestD = m.PrimaryPart.Position, off.Magnitude
+					end
+				end
+			end
+			if best then
+				dir = best - (r.Position + Vector3.new(0, 1.5, 0))
+			end
+		end
+	end
+	if dir.Magnitude > 0.1 then
+		ActionEvent:FireServer("Bow", dir.Unit)
+	end
+end
+
+local function potion()
+	if player:GetAttribute("Downed") ~= true then
+		ActionEvent:FireServer("Potion")
+	end
+end
+
+local function recall()
+	if canAct() and Store.state.inRun then
+		ActionEvent:FireServer("Recall")
+	end
+end
+
 function Input.Action(action: string)
+	if action == "Bow" then
+		bow()
+		return
+	elseif action == "Potion" then
+		potion()
+		return
+	elseif action == "Recall" then
+		recall()
+		return
+	end
 	if action == "Light" then
 		attack(false)
 	elseif action == "Heavy" then
@@ -6252,6 +7215,12 @@ function Input.Init(cb: Callbacks)
 			dodge()
 		elseif key == Enum.KeyCode.F or key == Enum.KeyCode.ButtonY then
 			ability()
+		elseif key == Enum.KeyCode.T or key == Enum.KeyCode.ButtonL2 then
+			bow()
+		elseif key == Enum.KeyCode.One or key == Enum.KeyCode.DPadDown then
+			potion()
+		elseif key == Enum.KeyCode.X or key == Enum.KeyCode.DPadRight then
+			recall()
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input, processed)
@@ -6268,7 +7237,7 @@ return Input
 ]]></string>
           </Properties>
         </Item>
-        <Item class="LocalScript" referent="26">
+        <Item class="LocalScript" referent="27">
           <Properties>
             <string name="Name">Main</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -6296,7 +7265,7 @@ local _ = Store
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="27">
+        <Item class="ModuleScript" referent="28">
           <Properties>
             <string name="Name">Panels</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -6329,6 +7298,7 @@ local toast: (string, string?) -> () = function() end
 local TITLES = {
 	Forge = "Schmiede",
 	Furnace = "Schmelzofen",
+	Workshop = "Werkbank",
 	Research = "Forschungstisch",
 	Chest = "Gemeinsame Lagerkiste",
 	Board = "Expeditionstafel",
@@ -6726,39 +7696,121 @@ local function renderFurnace()
 	local ore, bars = Store.Count("CopperOre"), Store.Count("CopperBar")
 	UI.Label("Der Schmelzofen verarbeitet Kupfererz zu Barren – dem Grundmetall jeder Waffe.", 14, UI.C.Dim, UI.Font, { Parent = box })
 	UI.Label(string.format("<b>Kupfererz:</b> %d      <b>Kupferbarren:</b> %d", ore, bars), 18, UI.C.Text, UI.Font, { Parent = box })
-	UI.Label(Config.Smelt.inputAmount .. " Kupfererz → 1 Kupferbarren", 14, UI.C.Copper, UI.FontBold, { Parent = box })
+	local big = (Store.state.upgrades or {}).BigFurnace == true
+	local input = if big then Config.Smelt.bigInput else Config.Smelt.inputAmount
+	local output = if big then Config.Smelt.bigOutput else 1
+	UI.Label(
+		input .. " Kupfererz → " .. output .. " Kupferbarren" .. (if big then "  (Großer Schmelzofen)" else ""),
+		14,
+		UI.C.Copper,
+		UI.FontBold,
+		{ Parent = box }
+	)
 	local r = row(box, 10, 44)
 	UI.Button("1 Barren schmelzen", UI.C.Copper, function()
 		send("Smelt", 1)
 	end, { Size = UDim2.new(0.5, -4, 1, 0), Parent = r })
-	UI.Button("Alles schmelzen (" .. math.floor(ore / Config.Smelt.inputAmount) .. ")", UI.C.Card, function()
+	UI.Button("Alles schmelzen (" .. math.floor(ore / input) * output .. " Barren)", UI.C.Card, function()
 		send("Smelt", 999)
 	end, { Size = UDim2.new(0.5, -4, 1, 0), Parent = r })
 end
 
+local function researchCard(
+	parent: Instance,
+	title: string,
+	desc: string,
+	done: boolean,
+	cost: { [string]: number }?,
+	action: () -> (),
+	label: string,
+	note: string?
+)
+	local card = UI.Card({ Parent = parent })
+	UI.List(4).Parent = card
+	UI.Label("<b>" .. title .. "</b>", 15, UI.C.Text, UI.Font, { Parent = card })
+	UI.Label(desc, 12, UI.C.Dim, UI.Font, { Parent = card })
+	if done then
+		UI.Label(UI.Colored("✔ Fertig", UI.C.Good), 13, UI.C.Text, UI.FontBold, { Parent = card })
+	elseif cost then
+		UI.Label("Kosten: " .. costText(cost), 12, UI.C.Text, UI.Font, { Parent = card })
+		if note then
+			UI.Label(UI.Colored(note, UI.C.Stamina), 12, UI.C.Text, UI.Font, { Parent = card })
+		end
+		UI.Button(label, if hasAll(cost) and not note then UI.C.Copper else UI.C.Bg, action, { Size = UDim2.new(0, 170, 0, 30), Parent = card })
+	end
+end
+
 local function renderResearch()
-	local box = UI.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = content }, { UI.List(10) })
-	UI.Label(
-		"Hier schaltest du neue Waffenformen frei. Riftkristalle findest du in den Ruinen und auf dem riskanten Pfad.",
-		14,
-		UI.C.Dim,
-		UI.Font,
-		{ Parent = box }
-	)
+	local s = Store.state
+	local left = UI.Scroll({ Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = left
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = left })
+	local right = UI.Scroll({ Position = UDim2.new(0.5, 6, 0, 0), Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = right
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = right })
+
+	section(left, "WAFFENFORMEN", 0)
 	for _, id in Config.FormOrder do
 		local def = Config.Forms[id]
-		local card = UI.Card({ Parent = box })
-		UI.List(4).Parent = card
-		UI.Label("<b>" .. def.name .. "</b>", 16, UI.C.Text, UI.Font, { Parent = card })
-		UI.Label(def.desc, 12, UI.C.Dim, UI.Font, { Parent = card })
-		if Store.state.unlocked[id] then
-			UI.Label(UI.Colored("✔ Erforscht", UI.C.Good), 13, UI.C.Text, UI.FontBold, { Parent = card })
-		elseif def.research then
-			UI.Label("Forschung: " .. costText(def.research), 12, UI.C.Text, UI.Font, { Parent = card })
-			UI.Button("Erforschen", if hasAll(def.research) then UI.C.Copper else UI.C.Bg, function()
-				send("Research", id)
-			end, { Size = UDim2.new(0, 160, 0, 32), Parent = card })
+		researchCard(left, def.name, def.desc, s.unlocked[id] == true, def.research, function()
+			send("Research", id)
+		end, "Erforschen")
+	end
+	section(left, "GEFUNDENE BAUPLÄNE ENTSCHLÜSSELN", 10)
+	for _, id in Config.ResearchOrder do
+		local def = Config.Research[id]
+		local gear = Config.Gear[if id == "Bow" then "CopperBow" else id]
+		local bpItem = next(def.cost)
+		for k in def.cost do
+			if Config.Items[k].kind == "Blueprint" then
+				bpItem = k
+			end
 		end
+		local hasBp = Store.Count(bpItem) > 0
+		researchCard(left, def.name, gear.desc, s.unlocked[id] == true, def.cost, function()
+			send("Research", id)
+		end, "Entschlüsseln", if hasBp then nil else "Bauplan noch nicht gefunden")
+	end
+
+	section(right, "CAMP-AUSBAU", 0)
+	UI.Label("Ausbauten sind im Camp sichtbar und wirken für dich dauerhaft.", 12, UI.C.Dim, UI.Font, { Parent = right })
+	local upgrades = s.upgrades or {}
+	for _, id in Config.UpgradeOrder do
+		local def = Config.Upgrades[id]
+		local locked = def.requires and not s.milestones[def.requires]
+		researchCard(right, def.name, def.desc, upgrades[id] == true, def.cost, function()
+			send("BuildUpgrade", id)
+		end, "Bauen", if locked then "Erst eine Expedition überleben" else nil)
+	end
+end
+
+local function renderWorkshop()
+	local s = Store.state
+	local tools = s.tools or {}
+	local left = UI.Scroll({ Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = left
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = left })
+	local right = UI.Scroll({ Position = UDim2.new(0.5, 6, 0, 0), Size = UDim2.new(0.5, -6, 1, 0), Parent = content })
+	UI.List(8).Parent = right
+	UI.new("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = right })
+	section(left, "WERKZEUGE & AUSRÜSTUNG", 0)
+	section(right, "VERBRAUCHSGÜTER", 0)
+	for _, id in Config.GearOrder do
+		local def = Config.Gear[id]
+		local parent = if def.item then right else left
+		local note = nil
+		if def.requires and not tools[def.requires] then
+			note = "Benötigt: " .. Config.Gear[def.requires].name
+		elseif def.research and not s.unlocked[def.research] then
+			note = "Bauplan am Forschungstisch entschlüsseln"
+		end
+		local desc = def.desc
+		if def.item then
+			desc ..= "  (Im Lager: " .. Store.Count(def.item) .. ")"
+		end
+		researchCard(parent, def.name, desc, not def.item and tools[id] == true, def.cost, function()
+			send("CraftGear", id)
+		end, "Herstellen", note)
 	end
 end
 
@@ -7069,8 +8121,10 @@ local function renderHelp()
 	UI.List(8).Parent = scroll
 	local text = {
 		"<b>Der Kreislauf:</b> Waffe schmieden → Expedition starten → Beute und Elementkerne sammeln → rechtzeitig am Rückkehrportal sichern → neue Waffe schmieden → tiefer ins Rift.",
-		"<b>Steuerung (PC):</b> Linksklick leichter Angriff · R oder Rechtsklick schwerer Angriff · Q Ausweichen (kurz unverwundbar) · F Elementfähigkeit · E interagieren · I Arsenal · J Aufgaben.",
-		"<b>Controller:</b> R2 leicht · R1 schwer · B ausweichen · Y Element · X interagieren.   <b>Handy:</b> Knöpfe rechts unten.",
+		"<b>Steuerung (PC):</b> Linksklick leichter Angriff · R oder Rechtsklick schwerer Angriff · Q Ausweichen (kurz unverwundbar) · F Elementfähigkeit · T Bogen · 1 Heiltrank · X Rückruf-Signalgeber · E interagieren · I Arsenal · J Aufgaben.",
+		"<b>Controller:</b> R2 leicht · R1 schwer · B ausweichen · Y Element · L2 Bogen · Steuerkreuz unten Trank · Steuerkreuz rechts Rückruf · X interagieren.   <b>Handy:</b> Knöpfe rechts unten.",
+		"<b>Werkzeuge öffnen Wege:</b> Die Steinspitzhacke baut normale Adern ab, die Kupferspitzhacke auch harte Adern. Mit dem Seilwerfer überquerst du den Abgrund am sicheren Pfad zum versteckten Höhlenbereich. Baupläne findest du in Truhen.",
+		"<b>Rift-Gefahr:</b> Nach 5 Minuten steigt die Gefahr alle 2 Minuten um eine Stufe, und immer mehr Gegner tauchen auf. Rechtzeitig zurückkehren! Der Rückruf-Signalgeber bringt dich einmal pro Expedition samt Beute sicher heim.",
 		"<b>Ausdauer</b> (gelb) sinkt bei Angriffen und beim Ausweichen. <b>Elementladung</b> füllt sich durch Treffer und Ausweichen – ist sie voll, drücke F.",
 		"<b>Perfektes Ausweichen:</b> Weiche genau dann aus, wenn ein angekündigter Angriff (rote Fläche) trifft.",
 	}
@@ -7101,6 +8155,7 @@ local RENDER: { [string]: () -> () } = {
 	Inventory = renderInventory,
 	Quests = renderQuests,
 	Help = renderHelp,
+	Workshop = renderWorkshop,
 }
 
 --------------------------------------------------------------------------------
@@ -7224,7 +8279,7 @@ return Panels
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="28">
+        <Item class="ModuleScript" referent="29">
           <Properties>
             <string name="Name">Store</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -7278,7 +8333,7 @@ return Store
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="29">
+        <Item class="ModuleScript" referent="30">
           <Properties>
             <string name="Name">UI</string>
             <string name="Source"><![CDATA[--!nonstrict
