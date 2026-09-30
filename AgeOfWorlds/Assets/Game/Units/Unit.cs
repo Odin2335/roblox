@@ -1,5 +1,7 @@
 using AgeOfWorlds.Core;
 using AgeOfWorlds.Data;
+using AgeOfWorlds.Economy;
+using AgeOfWorlds.Economy.Workers;
 using AgeOfWorlds.Units.States;
 using UnityEngine;
 
@@ -16,11 +18,33 @@ namespace AgeOfWorlds.Units
         [SerializeField] private int ownerId;
 
         private UnitManager unitManager;
+        private UnitMovement movement;
+        private UnitStateMachine stateMachine;
+        private Worker worker;
+        private bool workerLookedUp;
 
         public UnitData Data => data;
         public int OwnerId => ownerId;
-        public UnitMovement Movement { get; private set; }
-        public UnitStateMachine StateMachine { get; private set; }
+
+        // Lazy so sibling components can use them regardless of Awake order.
+        public UnitMovement Movement => movement != null ? movement : movement = GetComponent<UnitMovement>();
+        public UnitStateMachine StateMachine => stateMachine ??= new UnitStateMachine();
+
+        /// <summary>The worker capability, or null if this unit cannot gather/build.</summary>
+        public Worker Worker
+        {
+            get
+            {
+                if (!workerLookedUp)
+                {
+                    worker = GetComponent<Worker>();
+                    workerLookedUp = true;
+                }
+
+                return worker;
+            }
+        }
+
         public float CurrentHealth { get; private set; }
         public float MaxHealth => data != null ? data.MaxHealth : 1f;
         public bool IsAlive => CurrentHealth > 0f;
@@ -34,12 +58,6 @@ namespace AgeOfWorlds.Units
         public float SelectionRadius => data != null ? data.Radius : 0.5f;
         public string DisplayName => data != null ? data.DisplayName : name;
         public Sprite Icon => data != null ? data.Icon : null;
-
-        private void Awake()
-        {
-            Movement = GetComponent<UnitMovement>();
-            StateMachine = new UnitStateMachine();
-        }
 
         /// <summary>Used by spawners (production, pooling) before the unit is activated.</summary>
         public void Initialize(UnitData unitData, int owner)
@@ -91,6 +109,24 @@ namespace AgeOfWorlds.Units
                 case UnitCommandType.Stop:
                     Movement.Stop();
                     StateMachine.ChangeState(new UnitIdleState(this));
+                    break;
+                case UnitCommandType.Gather:
+                    if (Worker != null && command.Target is ResourceNode node)
+                    {
+                        Worker.BeginGathering(node);
+                    }
+                    else
+                    {
+                        StateMachine.ChangeState(new UnitMoveState(this, command.Position));
+                    }
+
+                    break;
+                case UnitCommandType.ReturnResource:
+                    if (Worker != null)
+                    {
+                        Worker.ReturnCargo(command.Target as ResourceDropOff);
+                    }
+
                     break;
             }
         }

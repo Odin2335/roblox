@@ -4,7 +4,7 @@ Echtzeit-Strategie mit Zivilisationsfortschritt: Steinzeit → Mittelalter → M
 Die Architektur ist so gebaut, dass weitere Epochen (bis 10–12), Einheiten, Gebäude und Technologien
 hauptsächlich über **ScriptableObjects** hinzukommen, ohne dass Core-Code umgeschrieben werden muss.
 
-**Stand: Fundament + Phase 1 (Core Prototype).** Alles Weitere folgt Phase für Phase.
+**Stand: Fundament + Phase 1 (Core Prototype) + Phase 2 (Economy).** Alles Weitere folgt Phase für Phase.
 
 ---
 
@@ -38,11 +38,13 @@ Assets/Game/
   Data/           ScriptableObject-Definitionen: UnitData, BuildingData, TechnologyData, EraData, FactionData, Enums
   Units/          Unit, UnitMovement, UnitManager, UnitCommand
     States/       wiederverwendbare Zustände (Idle, Move, … später Gather, Attack, Chase …)
+  Economy/        ResourceManager, PopulationManager, ResourceNode, ResourceDropOff, ResourceLocator, IdleWorkerTracker
+    Workers/      Worker (ein System für alle Ressourcentypen) + States/
   Commands/       CommandManager, Formationen
   Selection/      SelectionManager, SelectionMarker
   CameraSystem/   RTSCameraController
   Input/          RTSControls.inputactions, InputReader
-  UI/             SelectionBoxUI, SelectionPanelUI
+  UI/             SelectionBoxUI, SelectionPanelUI, ResourceBarUI
 Assets/ScriptableObjects/   Daten-Assets (Units, Buildings, Technologies, Eras, Factions, Match)
 Assets/Prefabs/             Units, Buildings, Resources, VFX
 ```
@@ -159,13 +161,114 @@ Lege außerdem ein leeres GameObject `MapBounds` an, Position `(0,0,0)`, Kompone
 
 ---
 
-## Offene Design-Entscheidung vor Phase 5 / 10
+## Hotkeys (Standardbelegung)
 
-Die Vorgabe verlangt **WASD für die Kamera** und zugleich **A = Attack Move, S = Stop**. Diese Tasten kollidieren.
-Die Bindings sind frei änderbar. Die Standardbelegung muss aber vor Phase 5 festgelegt werden, zum Beispiel:
-Kamera nur auf Pfeiltasten, oder Befehls-Hotkeys nur aktiv, solange Einheiten ausgewählt sind.
+Alle Tasten stehen in `Assets/Game/Input/RTSControls.inputactions` und können dort geändert werden.
+Im Code steht keine Taste. WASD bewegt **immer nur** die Kamera.
 
-## Nächster Schritt: Phase 2 – Economy
+| Aktion | Taste | Status |
+| --- | --- | --- |
+| Kamera | WASD + Pfeiltasten | aktiv |
+| Kamera drehen | Bild ↑ / Bild ↓ | aktiv |
+| Formation wechseln | F | aktiv |
+| Stop | X | aktiv (seit Phase 2) |
+| Pause | F10 | aktiv |
+| Abbrechen / Menüs / Placement Cancel | Escape | Action angelegt, Funktion ab Phase 3 |
+| Attack Move | Q | Action angelegt, Funktion in Phase 5 |
+| Hold Position | H | Action angelegt, Funktion in Phase 10 |
+| Patrol | P | Action angelegt, Funktion in Phase 10 |
+| Build Menu | B | Action angelegt, Funktion in Phase 3 |
+| Repair | R | Action angelegt, Funktion später |
+| Control Group speichern | Strg + 1–9 | Actions angelegt (`ControlGroupAssignModifier` + `ControlGroup1..9`), Funktion in Phase 10 |
+| Control Group abrufen | 1–9 | wie oben |
 
-Worker, Ressourcenknoten (Food/Tree/Metal/Energy), Sammeln mit Tragekapazität und Drop-off, Ressourcen-UI, Bevölkerung.
-Dabei kommen `ResourceManager`, `PopulationManager`, `IResourceGatherer`, `IResourceDropOff` und die Worker-Zustände hinzu.
+---
+
+## Phase 2 – Economy
+
+### Neue und geänderte Skripte
+
+| Datei | Zweck |
+| --- | --- |
+| `Economy/ResourceManager.cs` | Einzige Stelle, die Vorräte ändert: `GetAmount`, `CanAfford`, `TrySpend`, `Add`. Sendet `ResourceChangedEvent`. |
+| `Economy/PopulationManager.cs` | Aktuelle Bevölkerung = Summe der `PopulationCost` aller Einheiten (über Unit-Events). Max = Startkapazität + `AddCapacity` (Häuser in Phase 3), begrenzt durch Hard Cap. `HasRoomFor` für die Produktion. |
+| `Economy/ResourceNode.cs` | ResourceType, MaxAmount, RemainingAmount, GatherRateModifier. Food/Tree/Metal/Energy-Knoten sind **Prefabs derselben Komponente**. Auswählbar (zeigt die Restmenge). |
+| `Economy/IResourceDropOff.cs`, `ResourceDropOff.cs` | Abgabestelle. Welche Ressourcen angenommen werden, steht nur in der Liste **Accepted Resource Types** (Standard: alle vier). |
+| `Economy/IResourceGatherer.cs` | CarryCapacity, GatherRate, CurrentCarryAmount, CarriedResourceType, CurrentResourceNode, CurrentDropOff |
+| `Economy/ResourceLocator.cs` | Register für Knoten und Abgabestellen. Sucht den nächsten Knoten eines Typs bzw. die nächste passende Abgabestelle. |
+| `Economy/IdleWorkerTracker.cs` | Liste untätiger Worker pro Spieler, `GetNextIdleWorker()` für den späteren Button |
+| `Economy/Workers/Worker.cs` | Worker-Fähigkeit für jede Einheit. Der Ressourcentyp kommt vom Knoten und ist nicht im Worker festgelegt. |
+| `Economy/Workers/States/*` | `WorkerMoveToResourceState`, `WorkerGatherState`, `WorkerReturnResourceState`, `WorkerBuildState` und `WorkerRepairState` (beide vorbereitet) |
+| `UI/ResourceBarUI.cs` | Obere Leiste: Food, Wood, Metal, Energy, Population `47 / 80`, Idle Workers |
+| geändert: `UnitData` | neu: **Carry Capacity**, **Gather Rate** |
+| geändert: `MatchConfig` | neu: **Starting Resources**, **Starting Population Capacity**, **Population Hard Cap** |
+| geändert: `PlayerState` | hält `Resources` und `Population` (serialisierbar für Saves) |
+| geändert: `Unit`, `UnitCommand`, `UnitStateMachine`, `UnitStateId`, `UnitMovement` | Befehle Gather und ReturnResource, `StateChanged`-Event, Zustand MovingToResource, Blickrichtung beim Arbeiten |
+| geändert: `CommandManager` | Rechtsklick auf Knoten oder Abgabestelle, Stop (X) |
+| geändert: `SelectionManager`, `SelectionPanelUI` | leere Knoten werden abgewählt, das Panel zeigt Ladung bzw. Restmenge |
+| geändert: `InputReader`, `RTSControls.inputactions` | neue Hotkeys, siehe oben |
+
+**Worker-Zustände:** Idle, Moving (`UnitMoveState`), MovingToResource, Gathering, ReturningResource, Building, Repairing.
+Alle laufen über dieselbe Unit-State-Machine mit 10 Hz. Gesammelt wird pro Tick (`GatherRate × GatherRateModifier × Tickdauer`), nie pro Frame.
+
+### Einrichtung in Unity
+
+1. **Layer:** zusätzlich **Resource** und **Building** anlegen.
+2. **Systems-Objekt** um diese Komponenten erweitern: `ResourceManager`, `PopulationManager`, `ResourceLocator`, `IdleWorkerTracker`. Im Inspector gibt es bei ihnen nichts einzustellen.
+3. **CommandManager:** **Interactable Mask** = `Resource` + `Building`.
+   **SelectionManager:** **Selectable Mask** = `Unit` + `Resource`. Mit `Building` zusammen ist das in Phase 3 schon vorbereitet.
+4. **MatchConfig:** Starting Resources (Standard 200 / 200 / 100 / 0), Starting Population Capacity (Standard 10), Hard Cap 200.
+5. **Worker-Einheit:**
+   - Lege ein neues `UnitData`-Asset `Villager` an (ID `stone_villager`, Unit Type **Worker**, Population Cost 1, Carry Capacity 10, Gather Rate 1).
+   - Lege ein Prefab wie den Clubman aus Phase 1 an, zusätzlich mit der Komponente **Worker** (Defaults: Interaction Reach 0.8, Node Search Radius 25, Max Approach Attempts 3).
+   - Setze **Unit → Data** = `Villager`.
+6. **Ressourcenknoten** (je ein Prefab in `Assets/Prefabs/Resources`):
+   | Prefab | Form (Vorschlag) | Resource Type | Max Amount | Gather Rate Modifier |
+   | --- | --- | --- | --- | --- |
+   | `TreeNode` | Zylinder, grün | Wood | 150 | 1 |
+   | `FoodNode` | Kugel, rot (Beerenbusch) | Food | 200 | 1 |
+   | `MetalNode` | Würfel, grau | Metal | 400 | 0.7 |
+   | `EnergyNode` | Kapsel, cyan | Energy | 500 | 0.5 |
+
+   Jeder Knoten braucht: Layer **Resource** (auch an den Kindern), einen **Collider**, die Komponente `ResourceNode` und eine **NavMeshObstacle** mit **Carve** = an. So laufen Einheiten drumherum, und nach dem Abbau wird der Weg frei.
+7. **Platzhalter-Abgabestelle** (bis das Town Center in Phase 3 kommt):
+   - Würfel `DropOff_TC`, Scale `(4, 2, 4)`, Layer **Building**.
+   - Komponenten: `ResourceDropOff` (**Owner Id** 0, **Accepted Resource Types** = alle vier) und **NavMeshObstacle** (Carve).
+   - Für einen Test ohne Energy-Annahme: zweiter Würfel `DropOff_LumberCamp` mit **Accepted Resource Types** = nur Wood.
+8. **UI:** Im Canvas oben ein Objekt `ResourceBar` mit `ResourceBarUI`, darin 6 Texte (TextMeshPro) für Food, Wood, Metal, Energy, Population und Idle Workers. Ziehe sie in die gleichnamigen Felder.
+   Optional kannst du im Auswahlpanel einen weiteren Text als **Detail Text** zuweisen.
+9. NavMesh **neu baken**.
+
+### Phase 2 testen
+
+| Test | Erwartung |
+| --- | --- |
+| Play drücken | Leiste zeigt `Food: 200  Wood: 200  Metal: 100  Energy: 0`, dazu `Population: <Anzahl Einheiten> / 10` und `Idle workers: <Anzahl>` |
+| Villager wählen, Rechtsklick auf Baum | Er läuft hin, dreht sich zum Baum und sammelt. Das Detail-Panel zeigt `Carrying 3 / 10 Wood (Gather)`. |
+| Ladung voll | Er läuft zur nächsten Abgabestelle, gibt ab (Wood +10), läuft zum **selben** Baum zurück, und das wiederholt sich |
+| Baum anklicken | Das Panel zeigt `Wood: 120 / 150` und die Menge sinkt |
+| Baum leer | Der Baum verschwindet, der Villager sucht selbst den nächsten Baum im Umkreis von 25 m |
+| Kein weiterer Baum in der Nähe | Er bringt die Restladung weg und wird idle, der Idle-Zähler steigt |
+| Derselbe Villager: Holz → Erz → Beeren | Er wechselt ohne Umbau. Wechselt er mitten in der Ladung den Typ, verfällt die alte Ladung. |
+| Energy sammeln, nur `DropOff_LumberCamp` vorhanden | Warnung „found no drop-off accepting Energy“, Worker wird idle |
+| Rechtsklick mit vollem Worker auf eigene Abgabestelle | Er liefert sofort dort ab |
+| Rechtsklick auf Boden, danach X | Er bewegt sich bzw. stoppt, die Ladung bleibt erhalten |
+| Viele Villager auf einen Baum | Wer keinen Platz bekommt, wählt nach ein paar Versuchen einen Nachbarbaum |
+| Einheit im Editor löschen | Population sinkt sofort |
+| Ressourcen erscheinen auf der Leiste | Nur per Event, es gibt kein Polling |
+
+### Bekannte Einschränkungen (Phase 2)
+
+- **Abgabestelle ist ein Platzhalter:** `ResourceDropOff` sitzt auf einem Würfel. Das Town Center (Phase 3) nutzt dieselbe Komponente.
+- **Maximale Bevölkerung** kommt nur aus der Startkapazität der `MatchConfig`. Häuser rufen ab Phase 3 `AddCapacity` auf.
+- **Kein Limit an Workern pro Knoten**, aber unerreichbare Plätze werden nach 3 Versuchen aufgegeben.
+- Die Suche nach der nächsten Abgabestelle misst **Luftlinie**, nicht Pfadlänge.
+- **Tragen wird nicht angezeigt:** Es gibt kein Tragemodell und keine Sammel-Animation.
+- **Keine Tech-Modifikatoren:** Carry Capacity und Gather Rate lesen direkt aus `UnitData`. Die Modifikatoren kommen in Phase 6.
+- **Kein Idle-Worker-Button:** Es gibt nur den Zähler, Button und Hotkey kommen in Phase 10.
+- **Building und Repairing** laufen nur zum Ziel und warten dort.
+- **Hotkeys ohne Funktion:** Escape, Q, H, P, B, R und die Control-Group-Tasten sind als Actions angelegt, tun aber noch nichts.
+
+## Nächster Schritt: Phase 3 – Buildings
+
+Gebäudeplatzierung mit Ghost (grün/rot), Bau durch Worker mit abnehmendem Zusatznutzen, Town Center, Houses, Barracks.

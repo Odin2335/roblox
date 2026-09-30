@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AgeOfWorlds.Core;
+using AgeOfWorlds.Economy;
 using AgeOfWorlds.InputHandling;
 using AgeOfWorlds.Selection;
 using AgeOfWorlds.Units;
@@ -21,6 +22,8 @@ namespace AgeOfWorlds.Commands
         [Header("Raycasts")]
         [Tooltip("Layers that count as walkable ground for move commands.")]
         [SerializeField] private LayerMask groundMask = 1;
+        [Tooltip("Layers of right-click targets: resource nodes, drop-off buildings (later enemies, construction sites).")]
+        [SerializeField] private LayerMask interactableMask;
         [SerializeField] private float maxRayDistance = 1000f;
 
         [Header("Formations")]
@@ -29,6 +32,8 @@ namespace AgeOfWorlds.Commands
         [SerializeField] private float formationGap = 0.6f;
 
         private readonly List<Unit> commandBuffer = new List<Unit>();
+        private readonly List<Unit> workerBuffer = new List<Unit>();
+        private readonly List<Unit> otherBuffer = new List<Unit>();
         private readonly List<Vector3> destinationBuffer = new List<Vector3>();
         private GameManager gameManager;
 
@@ -69,6 +74,13 @@ namespace AgeOfWorlds.Commands
             {
                 HandleContextCommand();
             }
+
+            if (input.Stop.WasPressedThisFrame())
+            {
+                commandBuffer.Clear();
+                selection.GetCommandableUnits(commandBuffer);
+                IssueStop(commandBuffer);
+            }
         }
 
         public void CycleFormation()
@@ -104,6 +116,50 @@ namespace AgeOfWorlds.Commands
             }
         }
 
+        /// <summary>Workers gather the node; other units walk next to it.</summary>
+        public void IssueGather(IReadOnlyList<Unit> units, ResourceNode node)
+        {
+            workerBuffer.Clear();
+            otherBuffer.Clear();
+            for (int i = 0; i < units.Count; i++)
+            {
+                (units[i].Worker != null ? workerBuffer : otherBuffer).Add(units[i]);
+            }
+
+            for (int i = 0; i < workerBuffer.Count; i++)
+            {
+                workerBuffer[i].ExecuteCommand(UnitCommand.Gather(node));
+            }
+
+            if (otherBuffer.Count > 0)
+            {
+                IssueMove(otherBuffer, node.transform.position);
+            }
+        }
+
+        /// <summary>Workers carrying resources deliver them to this drop-off; everyone else moves there.</summary>
+        public void IssueReturnResources(IReadOnlyList<Unit> units, ResourceDropOff dropOff)
+        {
+            otherBuffer.Clear();
+            for (int i = 0; i < units.Count; i++)
+            {
+                Unit unit = units[i];
+                if (unit.Worker != null && unit.Worker.IsCarrying && dropOff.Accepts(unit.Worker.CarriedResourceType))
+                {
+                    unit.ExecuteCommand(UnitCommand.ReturnResource(dropOff));
+                }
+                else
+                {
+                    otherBuffer.Add(unit);
+                }
+            }
+
+            if (otherBuffer.Count > 0)
+            {
+                IssueMove(otherBuffer, dropOff.GetClosestPoint(otherBuffer[0].transform.position));
+            }
+        }
+
         public void IssueStop(IReadOnlyList<Unit> units)
         {
             for (int i = 0; i < units.Count; i++)
@@ -112,7 +168,7 @@ namespace AgeOfWorlds.Commands
             }
         }
 
-        /// <summary>Right-click. Phase 1: move only. Later: attack, gather, build, repair by target type.</summary>
+        /// <summary>Right-click: gather on resource nodes, deliver at own drop-offs, otherwise move. Later: attack, build, repair.</summary>
         private void HandleContextCommand()
         {
             commandBuffer.Clear();
@@ -123,10 +179,26 @@ namespace AgeOfWorlds.Commands
             }
 
             Ray ray = worldCamera.ScreenPointToRay(input.PointerScreenPosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, maxRayDistance, groundMask, QueryTriggerInteraction.Ignore))
+            if (!Physics.Raycast(ray, out RaycastHit hit, maxRayDistance, groundMask | interactableMask, QueryTriggerInteraction.Ignore))
             {
-                IssueMove(commandBuffer, hit.point);
+                return;
             }
+
+            ResourceNode node = hit.collider.GetComponentInParent<ResourceNode>();
+            if (node != null && !node.IsDepleted)
+            {
+                IssueGather(commandBuffer, node);
+                return;
+            }
+
+            ResourceDropOff dropOff = hit.collider.GetComponentInParent<ResourceDropOff>();
+            if (dropOff != null && dropOff.OwnerId == commandBuffer[0].OwnerId)
+            {
+                IssueReturnResources(commandBuffer, dropOff);
+                return;
+            }
+
+            IssueMove(commandBuffer, hit.point);
         }
     }
 }

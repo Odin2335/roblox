@@ -43,6 +43,12 @@ namespace AgeOfWorlds.Data
         [SerializeField] private DamageType damageType = DamageType.Melee;
         [SerializeField] private TargetType targetTypes = TargetType.Infantry | TargetType.Cavalry | TargetType.Building;
 
+        [Header("Worker (used only if the prefab has a Worker component)")]
+        [Tooltip("Resource units carried per trip.")]
+        [SerializeField, Min(1)] private int carryCapacity = 10;
+        [Tooltip("Resource units gathered per second, before node and technology modifiers.")]
+        [SerializeField, Min(0.01f)] private float gatherRate = 1f;
+
         [Header("Cost")]
         [SerializeField] private ResourceCost cost = new ResourceCost(50, 0, 0, 0);
         [SerializeField, Min(0)] private int populationCost = 1;
@@ -77,6 +83,9 @@ namespace AgeOfWorlds.Data
         public float AttackSpeed => attackSpeed;
         public DamageType DamageType => damageType;
         public TargetType TargetTypes => targetTypes;
+
+        public int CarryCapacity => carryCapacity;
+        public float GatherRate => gatherRate;
 
         public ResourceCost Cost => cost;
         public int FoodCost => cost.Food;

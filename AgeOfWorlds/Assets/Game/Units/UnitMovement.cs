@@ -27,6 +27,7 @@ namespace AgeOfWorlds.Units
         private float baseSpeed;
         private float turnSpeed = 540f;
         private Vector3 separationVelocity;
+        private Vector3 facingDirection;
 
         private float bestRemainingDistance;
         private float timeWithoutProgress;
@@ -88,6 +89,7 @@ namespace AgeOfWorlds.Units
             }
 
             Destination = destination;
+            facingDirection = Vector3.zero;
             Agent.isStopped = false;
             Agent.avoidancePriority = MovingAvoidancePriority;
             IsMoving = Agent.SetDestination(destination);
@@ -146,6 +148,14 @@ namespace AgeOfWorlds.Units
             return false;
         }
 
+        /// <summary>Makes a standing unit turn toward a point (e.g. the tree it is chopping). Cleared by MoveTo.</summary>
+        public void FaceTowards(Vector3 worldPoint)
+        {
+            Vector3 direction = worldPoint - transform.position;
+            direction.y = 0f;
+            facingDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.zero;
+        }
+
         /// <summary>Push applied to idle units that overlap (set by UnitManager's separation pass).</summary>
         public void SetSeparationVelocity(Vector3 velocity)
         {
@@ -159,6 +169,10 @@ namespace AgeOfWorlds.Units
             velocity.y = 0f;
             Vector3 desired = IsMoving ? Agent.desiredVelocity : velocity;
             desired.y = 0f;
+            if (!IsMoving && desired.sqrMagnitude <= 0.01f)
+            {
+                desired = facingDirection;
+            }
 
             if (desired.sqrMagnitude > 0.01f)
             {

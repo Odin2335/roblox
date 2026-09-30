@@ -4,6 +4,7 @@ namespace AgeOfWorlds.Units.States
     {
         Idle,
         Move,
+        MovingToResource,
         Gather,
         ReturnResource,
         Build,

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AgeOfWorlds.Core;
 using AgeOfWorlds.Core.Players;
+using AgeOfWorlds.Economy;
 using AgeOfWorlds.InputHandling;
 using AgeOfWorlds.Units;
 using AgeOfWorlds.UserInterface;
@@ -91,11 +92,13 @@ namespace AgeOfWorlds.Selection
         private void OnEnable()
         {
             EventBus.Subscribe<UnitRemovedEvent>(OnUnitRemoved);
+            EventBus.Subscribe<ResourceNodeDepletedEvent>(OnResourceNodeDepleted);
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<UnitRemovedEvent>(OnUnitRemoved);
+            EventBus.Unsubscribe<ResourceNodeDepletedEvent>(OnResourceNodeDepleted);
         }
 
         private void OnDestroy()
@@ -400,6 +403,15 @@ namespace AgeOfWorlds.Selection
             if (markers.ContainsKey(evt.Unit))
             {
                 RemoveInternal(evt.Unit);
+                PublishChanged();
+            }
+        }
+
+        private void OnResourceNodeDepleted(ResourceNodeDepletedEvent evt)
+        {
+            if (markers.ContainsKey(evt.Node))
+            {
+                RemoveInternal(evt.Node);
                 PublishChanged();
             }
         }

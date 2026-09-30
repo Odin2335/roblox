@@ -28,8 +28,18 @@ namespace AgeOfWorlds.Core.Players
         [SerializeField] private int localPlayerId;
         [SerializeField] private EraData startingEra;
 
+        [Header("Economy")]
+        [SerializeField] private ResourceCost startingResources = new ResourceCost(200, 200, 100, 0);
+        [Tooltip("Population capacity before any houses or town centers are counted.")]
+        [SerializeField, Min(0)] private int startingPopulationCapacity = 10;
+        [Tooltip("Absolute population limit, no matter how many houses exist.")]
+        [SerializeField, Min(1)] private int populationHardCap = 200;
+
         public IReadOnlyList<PlayerSetup> Players => players;
         public int LocalPlayerId => localPlayerId;
         public EraData StartingEra => startingEra;
+        public ResourceCost StartingResources => startingResources;
+        public int StartingPopulationCapacity => startingPopulationCapacity;
+        public int PopulationHardCap => populationHardCap;
     }
 }

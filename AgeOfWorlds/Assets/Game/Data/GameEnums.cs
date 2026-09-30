@@ -10,6 +10,12 @@ namespace AgeOfWorlds.Data
         Energy
     }
 
+    public static class ResourceTypeUtility
+    {
+        public static readonly ResourceType[] All = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+        public static int Count => All.Length;
+    }
+
     public enum UnitType
     {
         Worker,

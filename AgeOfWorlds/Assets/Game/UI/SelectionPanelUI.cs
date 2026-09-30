@@ -1,5 +1,7 @@
 using AgeOfWorlds.Core;
+using AgeOfWorlds.Economy;
 using AgeOfWorlds.Selection;
+using AgeOfWorlds.Units;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +19,8 @@ namespace AgeOfWorlds.UserInterface
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text healthText;
+        [Tooltip("Optional. Worker cargo / remaining amount of a resource node.")]
+        [SerializeField] private TMP_Text detailText;
         [SerializeField] private float refreshInterval = 0.25f;
 
         private SelectionManager selectionManager;
@@ -87,10 +91,41 @@ namespace AgeOfWorlds.UserInterface
 
             if (healthText != null)
             {
-                healthText.text = count == 1
-                    ? $"HP {Mathf.CeilToInt(first.CurrentHealth)} / {Mathf.CeilToInt(first.MaxHealth)}"
-                    : $"{count} selected";
+                if (count > 1)
+                {
+                    healthText.text = $"{count} selected";
+                }
+                else if (first is ResourceNode node)
+                {
+                    healthText.text = $"{node.ResourceType}: {node.RemainingAmount} / {node.MaxAmount}";
+                }
+                else
+                {
+                    healthText.text = $"HP {Mathf.CeilToInt(first.CurrentHealth)} / {Mathf.CeilToInt(first.MaxHealth)}";
+                }
             }
+
+            if (detailText != null)
+            {
+                detailText.text = count == 1 ? GetDetail(first) : string.Empty;
+            }
+        }
+
+        private static string GetDetail(ISelectable selectable)
+        {
+            if (selectable is Unit unit && unit.Worker != null)
+            {
+                return unit.Worker.IsCarrying
+                    ? $"Carrying {unit.Worker.CurrentCarryAmount} / {unit.Worker.CarryCapacity} {unit.Worker.CarriedResourceType}  ({unit.StateMachine.CurrentId})"
+                    : $"Carrying nothing  ({unit.StateMachine.CurrentId})";
+            }
+
+            if (selectable is ResourceNode node)
+            {
+                return $"Gather rate x{node.GatherRateModifier:0.##}";
+            }
+
+            return string.Empty;
         }
     }
 }
