@@ -1,0 +1,346 @@
+{
+    "name": "RTSControls",
+    "maps": [
+        {
+            "name": "Gameplay",
+            "id": "cd49fff9-af07-407e-bac5-06a103cbf900",
+            "actions": [
+                {
+                    "name": "PointerPosition",
+                    "type": "Value",
+                    "id": "e151ad2d-f782-4e34-993a-f96c255f8ab3",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Select",
+                    "type": "Button",
+                    "id": "71d0449a-d93a-49a2-9d5b-e08795a3e87a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Command",
+                    "type": "Button",
+                    "id": "efc81796-3faf-43d5-abe1-24efa9bda7f4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "AdditiveModifier",
+                    "type": "Button",
+                    "id": "3914ada1-3b83-4b98-9b25-8cecc16ec0e0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "CameraMove",
+                    "type": "Value",
+                    "id": "db4c363f-ddd2-43cd-a585-67b4793ca3fc",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "CameraZoom",
+                    "type": "Value",
+                    "id": "498f02da-9363-40f4-93ce-b34d92615bc8",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "CameraRotate",
+                    "type": "Value",
+                    "id": "957d398a-de63-4278-8c42-cf1b461e4532",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "CameraDrag",
+                    "type": "Button",
+                    "id": "d583a715-0487-44cc-936a-02e5d5bf1b59",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "CycleFormation",
+                    "type": "Button",
+                    "id": "c379d8ab-a8f3-4f79-a0e9-b947959ec4b4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Pause",
+                    "type": "Button",
+                    "id": "9f4c2ece-21bd-4842-881e-878b084800e4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "b4bf00b7-0329-4e4a-88e2-6b2945561522",
+                    "path": "<Pointer>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PointerPosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c096033c-691f-45e5-8cd3-05004c959d12",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "05f68031-b6fb-4f98-9d5b-d3cb4a004300",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Command",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "baf4effe-26d7-47d3-b697-e7a0912c5772",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AdditiveModifier",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "WASD",
+                    "id": "8d3638e6-a372-4807-af01-b53ffc350b9b",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "e479b875-d159-4347-a781-e0f084345e0d",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "6d51d55d-566f-49f1-a9a7-d4576ae512a6",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "c0c384e5-314c-4d04-b09d-4b64f834bdc4",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "6f971739-a6ba-4a55-bce5-33c591a6377d",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Arrows",
+                    "id": "6ff9a519-183f-485b-b59e-21eb77b23ab5",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "964e698c-3b8e-430f-ba80-f7360288a57a",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "d174a50c-a57a-47df-b42d-7dfbee25dddb",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "6fe8e64c-464a-4e7a-bc6b-aab9dc233630",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "923b08f1-306c-4d58-97de-8de2d7e914d2",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "7413e484-13c9-4b47-af3a-f8eb609764e7",
+                    "path": "<Mouse>/scroll/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraZoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "PageUpDown",
+                    "id": "633f2500-c2ff-43e3-81cb-466f8c194807",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraRotate",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "9f8bb645-684a-4ccd-a51f-a9569b45c6f1",
+                    "path": "<Keyboard>/pageDown",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "b899a8b4-58f7-4c7b-971a-3f8cc101a13c",
+                    "path": "<Keyboard>/pageUp",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "e1588917-7de5-4e8e-b032-f0128cc2092b",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraDrag",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7da868e1-9be4-48f8-ad18-40c32ed22369",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CycleFormation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0d900af2-a807-4ae5-bdb4-343b7b530b71",
+                    "path": "<Keyboard>/pause",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "07802e52-156d-4c30-8381-e0d238eac702",
+                    "path": "<Keyboard>/f10",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
